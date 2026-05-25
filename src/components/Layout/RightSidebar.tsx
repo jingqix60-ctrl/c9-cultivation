@@ -4,7 +4,7 @@ import { useProgressStore } from '../../store/useProgressStore';
 import { importAllProgress, createProfile } from '../../utils/storage';
 
 // ── Mode A: 今日小札 (Home / Dashboard / Other) ──
-function TodayNotes() {
+export function TodayNotes() {
   const navigate = useNavigate();
   const stats = useProgressStore(s => s.stats);
   const chapterId = useProgressStore(s => s.chapterId);
