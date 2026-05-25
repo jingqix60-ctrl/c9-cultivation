@@ -12,6 +12,7 @@ interface KPItem {
 
 export default function KnowledgeMatrix() {
   const navigate = useNavigate();
+  const chapterId = useProgressStore(s => s.chapterId);
   const tasks = useProgressStore(s => s.tasks);
   const done = useProgressStore(s => s.done);
   const retry = useProgressStore(s => s.retry);
@@ -97,7 +98,7 @@ export default function KnowledgeMatrix() {
       </div>
 
       <div style={{ marginTop: 8 }}>
-        <button className="btn btn-ghost btn-sm" onClick={() => navigate('/')}>
+        <button className="btn btn-ghost btn-sm" onClick={() => navigate(`/chapter/${chapterId}`)}>
           ← 返回仪表盘
         </button>
       </div>

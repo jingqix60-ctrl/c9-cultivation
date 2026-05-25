@@ -1,9 +1,10 @@
 import { useNavigate } from 'react-router-dom';
 import { useProgressStore } from '../../store/useProgressStore';
-import { MistakeTypeLabels, type MistakeType } from '../../data/chapterTypes';
+import { MistakeTypeLabels, type MistakeType } from '../../data/types';
 
 export default function ReviewQueue() {
   const navigate = useNavigate();
+  const chapterId = useProgressStore(s => s.chapterId);
   const tasks = useProgressStore(s => s.tasks);
   const retry = useProgressStore(s => s.retry);
 
@@ -15,7 +16,7 @@ export default function ReviewQueue() {
         <p style={{ color: 'var(--text2)', fontSize: 12, marginTop: 4 }}>
           所有待重做题目已完成。
         </p>
-        <button className="btn btn-accent btn-sm" style={{ marginTop: 12 }} onClick={() => navigate('/')}>
+        <button className="btn btn-accent btn-sm" style={{ marginTop: 12 }} onClick={() => navigate(`/chapter/${chapterId}`)}>
           ← 返回仪表盘
         </button>
       </div>
@@ -52,7 +53,7 @@ export default function ReviewQueue() {
             <button
               key={task.id}
               className="review-item"
-              onClick={() => navigate(`/task/${task.id}`)}
+              onClick={() => navigate(`/chapter/${chapterId}/task/${task.id}`)}
             >
               <span>#{task.id + 1} {task.title}</span>
               <span style={{ color: 'var(--text2)', fontSize: 10 }}>{task.source}</span>
@@ -68,7 +69,7 @@ export default function ReviewQueue() {
             <button
               key={task.id}
               className="review-item"
-              onClick={() => navigate(`/task/${task.id}`)}
+              onClick={() => navigate(`/chapter/${chapterId}/task/${task.id}`)}
             >
               <span>#{task.id + 1} {task.title}</span>
               <span style={{ color: 'var(--text2)', fontSize: 10 }}>{task.source}</span>
@@ -78,7 +79,7 @@ export default function ReviewQueue() {
       )}
 
       <div style={{ marginTop: 8 }}>
-        <button className="btn btn-ghost btn-sm" onClick={() => navigate('/')}>
+        <button className="btn btn-ghost btn-sm" onClick={() => navigate(`/chapter/${chapterId}`)}>
           ← 返回仪表盘
         </button>
       </div>

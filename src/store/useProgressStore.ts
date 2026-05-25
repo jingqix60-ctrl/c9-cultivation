@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Task } from '../data/chapterTypes';
+import type { Task, ChapterData } from '../data/types';
 import { loadProgress, saveProgress, type StoredProgress } from '../utils/storage';
 import { calcStats, getNextTask, type ChapterStats } from '../utils/progress';
 
@@ -14,8 +14,11 @@ interface ProgressState {
   toastMessage: string | null;
   toastType: 'gr' | 'ac' | 'go' | 'rd';
 
+  // Data
+  chapterTitle: string;
+
   // Actions
-  init: (chapterId: number, tasks: Task[]) => void;
+  init: (chapterId: number, data: ChapterData) => void;
   markDone: () => void;
   markRetry: () => void;
   goToTask: (taskId: number) => void;
@@ -34,9 +37,11 @@ export const useProgressStore = create<ProgressState>((set, get) => ({
   completed: false,
   stats: {} as ChapterStats,
   toastMessage: null,
-  toastType: 'gr',
+  toastType: 'gr' as const,
+  chapterTitle: '',
 
-  init: (chapterId, tasks) => {
+  init: (chapterId, data) => {
+    const tasks = data.tasks;
     const saved = loadProgress(chapterId);
     const state = get();
     // Only init if not already or if chapter changed
@@ -52,6 +57,7 @@ export const useProgressStore = create<ProgressState>((set, get) => ({
 
     set({
       chapterId,
+      chapterTitle: data.chapterTitle,
       tasks,
       done: saved.done,
       retry: saved.retry,

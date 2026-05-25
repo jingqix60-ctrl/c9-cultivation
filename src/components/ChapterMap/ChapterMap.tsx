@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
+import { STAGE_NAMES } from '../../data/types';
 import { useProgressStore } from '../../store/useProgressStore';
-import { STAGE_NAMES } from '../../data/chapterTypes';
 
 const STAGE_ICONS: Record<number, string> = {
   0: '📖', 1: '📘', 2: '🎯', 3: '🏗️', 4: '🔥', 5: '👑',
@@ -11,6 +11,8 @@ export default function ChapterMap() {
   const tasks = useProgressStore(s => s.tasks);
   const done = useProgressStore(s => s.done);
   const retry = useProgressStore(s => s.retry);
+  const chapterId = useProgressStore(s => s.chapterId);
+  const base = `/chapter/${chapterId}`;
 
   const stages = new Map<number, { stage: number; name: string; tasks: typeof tasks }>();
   tasks.forEach(t => {
@@ -47,7 +49,7 @@ export default function ChapterMap() {
               className={`stage-node ${statusClass}`}
               onClick={() => {
                 const firstTask = stageTasks[0];
-                if (firstTask) navigate(`/task/${firstTask.id}`);
+                if (firstTask) navigate(`${base}/task/${firstTask.id}`);
               }}
             >
               <div className={`stage-icon ${iconClass}`}>
@@ -68,10 +70,10 @@ export default function ChapterMap() {
       </div>
 
       <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
-        <button className="btn btn-accent btn-sm" onClick={() => navigate('/task')}>
+        <button className="btn btn-accent btn-sm" onClick={() => navigate(`${base}/task`)}>
           进入当前任务
         </button>
-        <button className="btn btn-ghost btn-sm" onClick={() => navigate('/')}>
+        <button className="btn btn-ghost btn-sm" onClick={() => navigate(base)}>
           ← 返回仪表盘
         </button>
       </div>

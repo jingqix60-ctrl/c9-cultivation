@@ -1,5 +1,5 @@
-import type { Task, Realm } from '../data/chapterTypes';
-import { REALMS } from '../data/chapterTypes';
+import type { Task, Realm } from '../data/types';
+import { REALMS } from '../data/types';
 
 export interface ChapterStats {
   mastery: number;

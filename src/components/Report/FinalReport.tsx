@@ -7,6 +7,7 @@ export default function FinalReport() {
   const stats = useProgressStore(s => s.stats);
   const done = useProgressStore(s => s.done);
   const retry = useProgressStore(s => s.retry);
+  const chapterId = useProgressStore(s => s.chapterId);
   const tasks = useProgressStore(s => s.tasks);
   const resetChapter = useProgressStore(s => s.resetChapter);
 
@@ -27,7 +28,7 @@ export default function FinalReport() {
         <p style={{ color: 'var(--text2)' }}>
           还有任务未完成或心魔未清除。请先完成所有修炼。
         </p>
-        <button className="btn btn-accent btn-sm" style={{ marginTop: 12 }} onClick={() => navigate('/task')}>
+        <button className="btn btn-accent btn-sm" style={{ marginTop: 12 }} onClick={() => navigate(`/chapter/${chapterId}/task`)}>
           继续修炼
         </button>
       </div>
@@ -94,16 +95,16 @@ export default function FinalReport() {
       </p>
 
       <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 16 }}>
-        <button className="btn btn-ghost btn-sm" onClick={() => navigate('/')}>
+        <button className="btn btn-ghost btn-sm" onClick={() => navigate(`/chapter/${chapterId}`)}>
           📊 仪表盘
         </button>
-        <button className="btn btn-ghost btn-sm" onClick={() => navigate('/map')}>
+        <button className="btn btn-ghost btn-sm" onClick={() => navigate(`/chapter/${chapterId}/map`)}>
           🗺️ 章节地图
         </button>
         <button className="btn btn-red btn-sm" onClick={() => {
           if (confirm('确定要重置第10讲所有进度吗？此操作不可撤销。')) {
             resetChapter();
-            navigate('/');
+            navigate(`/chapter/${chapterId}`);
           }
         }}>
           🔄 重置进度

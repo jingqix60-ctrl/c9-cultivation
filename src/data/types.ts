@@ -25,6 +25,7 @@ export const MistakeTypeLabels: Record<MistakeType, string> = {
   geometry: '几何建模错误',
 };
 
+// ── Reward ──
 export interface Reward {
   mastery: number;
   method: number;
@@ -33,6 +34,7 @@ export interface Reward {
   c9: number;
 }
 
+// ── Task ──
 export interface Task {
   id: number;
   stage: number;
@@ -54,16 +56,31 @@ export interface Task {
   mistakeTypes: MistakeType[];
 }
 
-export interface ChapterMeta {
-  id: number;
-  title: string;
-  subtitle: string;
+// ── Chapter Data (importable JSON format) ──
+export interface ChapterData {
+  chapterId: number;
+  chapterTitle: string;
+  book: string;
+  mainSource: string;
   description: string;
-  mainBook: string;
-  supportBooks: string[];
-  totalTasks: number;
+  stages: { id: number; name: string }[];
+  tasks: Task[];
+  knowledgePoints: string[];
 }
 
+// ── Chapter Registry Entry ──
+export interface ChapterEntry {
+  chapterId: number;
+  chapterNumber: number;
+  chapterTitle: string;
+  book: string;
+  description: string;
+  taskCount: number;
+  difficulty: number;
+  status: 'available' | 'not_imported';
+}
+
+// ── Realm ──
 export interface Realm {
   name: string;
   minMastery: number;

@@ -9,6 +9,7 @@ export default function TaskPage() {
   const { id } = useParams<{ id?: string }>();
   const navigate = useNavigate();
   const tasks = useProgressStore(s => s.tasks);
+  const chapterId = useProgressStore(s => s.chapterId);
   const currentTask = useProgressStore(s => s.currentTask);
   const done = useProgressStore(s => s.done);
   const retry = useProgressStore(s => s.retry);
@@ -37,7 +38,7 @@ export default function TaskPage() {
   // Redirect /task (no id) to /task/{currentTask}
   useEffect(() => {
     if (id === undefined && currentTask >= 0 && currentTask < tasks.length) {
-      navigate(`/task/${currentTask}`, { replace: true });
+      navigate(`/chapter/${chapterId}/task/${currentTask}`, { replace: true });
     }
   }, [id, currentTask, tasks.length, navigate]);
 
@@ -53,7 +54,7 @@ export default function TaskPage() {
       <div className="anim-in" style={{ textAlign: 'center', padding: 40 }}>
         <div style={{ fontSize: 48, marginBottom: 12 }}>👑</div>
         <p style={{ color: 'var(--text2)' }}>所有任务已完成，心魔已清空。</p>
-        <button className="btn btn-accent" style={{ marginTop: 12 }} onClick={() => navigate('/report')}>
+        <button className="btn btn-accent" style={{ marginTop: 12 }} onClick={() => navigate(`/chapter/${chapterId}/report`)}>
           查看战报
         </button>
       </div>
@@ -64,7 +65,7 @@ export default function TaskPage() {
     return (
       <div className="anim-in" style={{ textAlign: 'center', padding: 40 }}>
         <p style={{ color: 'var(--text2)' }}>任务不存在。</p>
-        <button className="btn btn-accent btn-sm" style={{ marginTop: 12 }} onClick={() => navigate('/')}>
+        <button className="btn btn-accent btn-sm" style={{ marginTop: 12 }} onClick={() => navigate(`/chapter/${chapterId}`)}>
           返回仪表盘
         </button>
       </div>
@@ -80,9 +81,9 @@ export default function TaskPage() {
     // Read the updated currentTask after nextTask() settled
     const { currentTask: newCur, done: nd, retry: nr } = useProgressStore.getState();
     if (nd.length >= tasks.length && nr.length === 0) {
-      navigate('/report');
+      navigate(`/chapter/${chapterId}/report`);
     } else {
-      navigate(`/task/${newCur}`);
+      navigate(`/chapter/${chapterId}/task/${newCur}`);
     }
   };
 
@@ -99,60 +100,74 @@ export default function TaskPage() {
   return (
     <div className="anim-in">
       <div className="task-card">
-        {/* Header */}
+        {/* ── Row 0: Header tags ── */}
         <div className="task-header">
           <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
             <span className="tag tag-purple">{task.stageName}</span>
-            <span className="tag tag-blue">{task.source}</span>
             <span className={`diff diff-${task.difficulty}`}>
               {'★'.repeat(task.difficulty)}
             </span>
+            <span className="tag tag-blue">{task.source}</span>
           </div>
           <span style={{ fontSize: 11, color: 'var(--text2)' }}>
             #{task.id + 1}/{total}
           </span>
         </div>
 
-        {/* Title */}
-        <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 6 }}>
+        {/* ── Row 1: Title ── */}
+        <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 10 }}>
           {task.title}
         </div>
 
-        {/* Body */}
-        <div className="task-body">
+        {/* ── Row 2: Knowledge points ── */}
+        <div style={{ marginBottom: 12 }}>
+          <div style={{ fontSize: 10, color: 'var(--text2)', marginBottom: 4 }}>核心考点</div>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
+            gap: 4,
+          }}>
+            {task.knowledgePoints.map(kp => (
+              <span key={kp} className="tag tag-purple" style={{ textAlign: 'center' }}>{kp}</span>
+            ))}
+          </div>
+        </div>
+
+        {/* ── Row 3: Question body ── */}
+        <div className="task-body" style={{ marginBottom: 8 }}>
           <LatexContent html={task.question} />
         </div>
 
-        {/* Meta */}
-        <div className="task-meta">
-          ⏱ {task.time} &nbsp;|&nbsp; 🏷 {task.skillTags.join(' · ')} &nbsp;|&nbsp; 🎁 掌握度 +{task.reward.mastery}%
+        {/* ── Row 4: Meta ── */}
+        <div className="task-meta" style={{ marginBottom: 6 }}>
+          ⏱ {task.time} &nbsp;|&nbsp; 🎁 掌握度 +{task.reward.mastery}%
         </div>
 
         {/* Status badges */}
         {isDone && (
-          <div style={{ fontSize: 11, color: 'var(--green)', marginTop: 4 }}>
-            ✅ 已完成
-          </div>
+          <div style={{ fontSize: 11, color: 'var(--green)', marginBottom: 6 }}>✅ 已完成</div>
         )}
         {isRetry && (
-          <div style={{ fontSize: 11, color: 'var(--red)', marginTop: 4 }}>
+          <div style={{ fontSize: 11, color: 'var(--red)', marginBottom: 6 }}>
             🔄 此任务在心魔队列中，完成后方可计入掌握度。
           </div>
         )}
 
-        {/* Hint & Answer */}
-        <HintPanel hint={task.hint} visible={showHint} onToggle={() => setShowHint(!showHint)} />
-        <AnswerPanel
-          answer={task.answer}
-          method={task.method}
-          trap={task.trap}
-          afterMastery={task.afterMastery}
-          visible={showAnswer}
-          onToggle={() => setShowAnswer(!showAnswer)}
-        />
+        {/* ── Row 5: Hint & Answer buttons ── */}
+        <div className="task-buttons" style={{ borderTop: '1px solid var(--border)', paddingTop: 10 }}>
+          <HintPanel hint={task.hint} visible={showHint} onToggle={() => setShowHint(!showHint)} />
+          <AnswerPanel
+            answer={task.answer}
+            method={task.method}
+            trap={task.trap}
+            afterMastery={task.afterMastery}
+            visible={showAnswer}
+            onToggle={() => setShowAnswer(!showAnswer)}
+          />
+        </div>
 
-        {/* Action buttons */}
-        <div className="task-buttons">
+        {/* ── Row 6: Action buttons ── */}
+        <div className="task-buttons" style={{ marginTop: 10 }}>
           <button className="btn btn-green" onClick={handleMarkDone}>
             ✅ 我做对了
           </button>
@@ -161,15 +176,15 @@ export default function TaskPage() {
           </button>
         </div>
 
-        {/* Navigation */}
-        <div className="task-buttons" style={{ marginTop: 8 }}>
+        {/* ── Row 7: Prev/Next ── */}
+        <div className="task-buttons" style={{ marginTop: 6 }}>
           <button
             className="btn btn-ghost btn-sm"
             onClick={() => {
               const allVisited = [...done, ...retry].filter(i => i < task.id);
               const prev = allVisited.length > 0 ? Math.max(...allVisited) : Math.max(0, task.id - 1);
               goToTask(prev);
-              navigate(`/task/${prev}`);
+              navigate(`/chapter/${chapterId}/task/${prev}`);
             }}
           >
             ← 上一题
@@ -185,19 +200,31 @@ export default function TaskPage() {
                   ? Math.min(...allRetry)
                   : task.id;
               goToTask(next);
-              navigate(`/task/${next}`);
+              navigate(`/chapter/${chapterId}/task/${next}`);
             }}
           >
             下一题 →
           </button>
         </div>
+
+        {/* ── Row 8: Source footer ── */}
+        <div style={{
+          marginTop: 10,
+          paddingTop: 8,
+          borderTop: '1px solid var(--border)',
+          fontSize: 10,
+          color: 'var(--text2)',
+        }}>
+          题源：{task.source}
+          {task.skillTags.length > 0 && ` · 考点：${task.skillTags.join('、')}`}
+        </div>
       </div>
 
       <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 4 }}>
-        <button className="btn btn-ghost btn-sm" onClick={() => navigate('/map')}>
+        <button className="btn btn-ghost btn-sm" onClick={() => navigate(`/chapter/${chapterId}/map`)}>
           🗺️ 章节地图
         </button>
-        <button className="btn btn-ghost btn-sm" onClick={() => navigate('/')}>
+        <button className="btn btn-ghost btn-sm" onClick={() => navigate(`/chapter/${chapterId}`)}>
           📊 仪表盘
         </button>
       </div>

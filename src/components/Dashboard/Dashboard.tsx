@@ -1,6 +1,5 @@
 import { useNavigate } from 'react-router-dom';
 import { useProgressStore } from '../../store/useProgressStore';
-import { chapter10Meta } from '../../data/chapter10';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -8,20 +7,23 @@ export default function Dashboard() {
   const tasks = useProgressStore(s => s.tasks);
   const currentTask = useProgressStore(s => s.currentTask);
   const completed = useProgressStore(s => s.completed);
+  const chapterId = useProgressStore(s => s.chapterId);
+  const chapterTitle = useProgressStore(s => s.chapterTitle);
 
   if (!stats.realm) return null;
 
   const currentTaskData = tasks[currentTask];
+  const base = `/chapter/${chapterId}`;
 
   if (completed) {
     return (
       <div className="anim-in">
         <div className="dash-cta" style={{ borderColor: 'var(--gold)' }}>
           <div className="cta-text">
-            <div className="cta-title" style={{ color: 'var(--gold)' }}>👑 第10讲已圆满通关！</div>
+            <div className="cta-title" style={{ color: 'var(--gold)' }}>👑 {chapterTitle} 已圆满通关！</div>
             <div className="cta-sub">所有任务已完成，心魔已清空。</div>
           </div>
-          <button className="btn btn-gold" onClick={() => navigate('/report')}>
+          <button className="btn btn-gold" onClick={() => navigate(`${base}/report`)}>
             查看战报
           </button>
         </div>
@@ -45,7 +47,6 @@ export default function Dashboard() {
 
   return (
     <div className="anim-in">
-      {/* Stats */}
       <div className="stats-grid">
         <div className="stat-card">
           <div className="stat-value" style={{ color: 'var(--accent)' }}>{stats.mastery}%</div>
@@ -71,7 +72,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Skill bars */}
       <div className="skill-bars">
         <div className="skill-row">
           <span className="skill-name">方法选择</span>
@@ -96,7 +96,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* CTA - Current task */}
       <div className="dash-cta">
         <div className="cta-text">
           <div className="cta-title">
@@ -104,25 +103,24 @@ export default function Dashboard() {
           </div>
           <div className="cta-sub">
             {currentTaskData
-              ? `${chapter10Meta.totalTasks - stats.doneCount} 题待攻克 · ${stats.retryCount} 心魔待清`
-              : `共 ${chapter10Meta.totalTasks} 道修炼任务`}
+              ? `${stats.totalCount - stats.doneCount} 题待攻克 · ${stats.retryCount} 心魔待清`
+              : `共 ${stats.totalCount} 道修炼任务`}
           </div>
         </div>
-        <button className="btn btn-accent" onClick={() => navigate('/task')}>
+        <button className="btn btn-accent" onClick={() => navigate(`${base}/task`)}>
           {stats.doneCount === 0 ? '开始修炼 ⚔️' : '继续修炼 ⚔️'}
         </button>
       </div>
 
-      {/* Quick links */}
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 8 }}>
-        <button className="btn btn-ghost btn-sm" onClick={() => navigate('/map')}>
+        <button className="btn btn-ghost btn-sm" onClick={() => navigate(`${base}/map`)}>
           🗺️ 章节地图
         </button>
-        <button className="btn btn-ghost btn-sm" onClick={() => navigate('/knowledge')}>
+        <button className="btn btn-ghost btn-sm" onClick={() => navigate(`${base}/knowledge`)}>
           📋 知识矩阵
         </button>
         {stats.retryCount > 0 && (
-          <button className="btn btn-red btn-sm" onClick={() => navigate('/review')}>
+          <button className="btn btn-red btn-sm" onClick={() => navigate(`${base}/review`)}>
             📖 心魔本 ({stats.retryCount})
           </button>
         )}
