@@ -1,0 +1,144 @@
+<h2>宽屏两侧空白 — 四种处理方案</h2>
+<p class="subtitle">当前 max-width: 760px 居中，宽屏时两侧留白。你倾向于哪种方向？</p>
+
+<div class="cards">
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup" style="min-height:260px">
+        <div class="mockup-header">方案 A：拓展主内容区</div>
+        <div class="mockup-body">
+          <div style="width:100%; max-width:720px; margin:0 auto; background:#FFFDF7; border:2px dashed #8B5E34; border-radius:8px; padding:10px 12px; font-size:10px; text-align:center; color:#7A6F63; box-sizing:border-box;">
+            <div style="font-weight:700; color:#8B5E34; margin-bottom:6px; font-size:11px;">📖 C9 考研数学修炼系统 · 第10讲</div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:6px;">
+              <span style="flex:1; background:#F7F1E6; padding:6px; border-radius:4px; min-width:120px;">📊 掌握度 72%</span>
+              <span style="flex:1; background:#F7F1E6; padding:6px; border-radius:4px; min-width:120px;">⚡ C9 战力 580</span>
+              <span style="flex:1; background:#F7F1E6; padding:6px; border-radius:4px; min-width:120px;">📝 18/25 题</span>
+            </div>
+            <div style="background:#FCF8EF; border:1px solid rgba(94,77,56,0.14); border-radius:6px; padding:8px; text-align:left; font-size:9px;">
+              <div style="font-weight:600; margin-bottom:3px;">题目 #5 · 旋转体体积</div>
+              <div style="height:4px; background:rgba(94,77,56,0.2); border-radius:2px; width:60%;"></div>
+            </div>
+            <div style="margin-top:6px; font-size:9px; color:#A09480;">← 内容区从 760px → 960px，两侧加细微装饰边框</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A · 拓宽内容区</h3>
+      <p>max-width 760 → 960px，中央加一道淡色竖线装饰。改动最小，阅读宽度增加但不失聚焦感。适合专注刷题场景。</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup" style="min-height:260px">
+        <div class="mockup-header">方案 B：左侧修炼面板</div>
+        <div class="mockup-body">
+          <div style="display:flex; gap:0; max-width:780px; margin:0 auto; font-size:9px; box-sizing:border-box;">
+            <div style="width:130px; flex-shrink:0; background:#FFFDF7; border:1.5px solid #8B5E34; border-radius:8px 0 0 8px; padding:10px 8px; text-align:center; color:#7A6F63;">
+              <div style="font-weight:700; color:#8B5E34; font-size:10px; margin-bottom:6px;">⚔️ 修炼面板</div>
+              <div style="background:#F7F1E6; border-radius:4px; padding:4px; margin-bottom:4px;">
+                <div style="font-size:8px;">当前境界</div>
+                <div style="color:#8B5E34; font-weight:600; font-size:10px;">炼气中期</div>
+              </div>
+              <div style="background:#F7F1E6; border-radius:4px; padding:4px; margin-bottom:4px;">
+                <div style="font-size:8px;">今日进度</div>
+                <div style="height:3px; background:rgba(94,77,56,0.2); border-radius:2px; margin:3px 0;"><div style="width:60%; height:3px; background:#8B5E34; border-radius:2px;"></div></div>
+                <div style="font-size:8px;">12/20 题</div>
+              </div>
+              <div style="background:#F7F1E6; border-radius:4px; padding:4px;">
+                <div style="font-size:8px;">🔥 连续修炼</div>
+                <div style="color:#B68A35; font-weight:600; font-size:10px;">7 天</div>
+              </div>
+            </div>
+            <div style="flex:1; background:#FFFDF7; border:1.5px solid rgba(94,77,56,0.14); border-left:none; border-radius:0 8px 8px 0; padding:10px 12px; text-align:center;">
+              <div style="font-weight:700; color:#8B5E34; font-size:10px; margin-bottom:4px;">📖 主内容区 (760px)</div>
+              <div style="background:#FCF8EF; border:1px solid rgba(94,77,56,0.14); border-radius:4px; padding:6px; text-align:left; font-size:8px;">
+                <div style="font-weight:600; margin-bottom:2px;">题目 #5 · 旋转体体积</div>
+                <div style="height:4px; background:rgba(94,77,56,0.2); border-radius:2px; width:70%;"></div>
+              </div>
+              <div style="margin-top:4px; font-size:7px; color:#A09480;">← 左侧 RPG 角色面板，右侧做题不变</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B · 左侧修炼面板</h3>
+      <p>固定左侧 140-160px 修炼者状态卡（境界、进度、连续天数），像 RPG 角色面板。强化「修炼」沉浸感，切合主题。</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup" style="min-height:260px">
+        <div class="mockup-header">方案 C：对称三栏</div>
+        <div class="mockup-body">
+          <div style="display:flex; gap:0; max-width:860px; margin:0 auto; font-size:9px; box-sizing:border-box;">
+            <div style="width:110px; flex-shrink:0; background:#FFFDF7; border:1.5px solid rgba(94,77,56,0.14); border-radius:8px 0 0 8px; padding:10px 6px; color:#7A6F63;">
+              <div style="font-weight:700; font-size:9px; margin-bottom:4px; color:#5E7C76;">📋 章节导航</div>
+              <div style="background:#F7F1E6; border-radius:3px; padding:3px; margin-bottom:2px; font-size:7px; color:#8B5E34;">第10讲 定积分</div>
+              <div style="background:#F7F1E6; border-radius:3px; padding:3px; margin-bottom:2px; font-size:7px;">第11讲 微分方程</div>
+              <div style="background:#F7F1E6; border-radius:3px; padding:3px; margin-bottom:2px; font-size:7px;">第12讲 多元函数</div>
+            </div>
+            <div style="flex:1; background:#FFFDF7; border:1.5px solid rgba(94,77,56,0.14); border-left:none; border-right:none; padding:10px 12px; text-align:center;">
+              <div style="font-weight:700; color:#8B5E34; font-size:10px; margin-bottom:4px;">📖 主内容区</div>
+              <div style="background:#FCF8EF; border:1px solid rgba(94,77,56,0.14); border-radius:4px; padding:6px; text-align:left; font-size:8px;">
+                <div style="font-weight:600; margin-bottom:2px;">题目 #5</div>
+                <div style="height:4px; background:rgba(94,77,56,0.2); border-radius:2px; width:70%;"></div>
+              </div>
+              <div style="margin-top:4px; font-size:7px; color:#A09480;">← 左：章节导航 · 中：内容 · 右：工具 →</div>
+            </div>
+            <div style="width:110px; flex-shrink:0; background:#FFFDF7; border:1.5px solid rgba(94,77,56,0.14); border-radius:0 8px 8px 0; padding:10px 6px; color:#7A6F63;">
+              <div style="font-weight:700; font-size:9px; margin-bottom:4px; color:#B68A35;">📐 公式速查</div>
+              <div style="background:#F7F1E6; border-radius:3px; padding:3px; margin-bottom:2px; font-size:7px;">V = π∫y²dx</div>
+              <div style="background:#F7F1E6; border-radius:3px; padding:3px; margin-bottom:2px; font-size:7px;">V = 2π∫xy dx</div>
+              <div style="background:#F7F1E6; border-radius:3px; padding:3px; font-size:7px;">Pappus 定理</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C · 对称三栏布局</h3>
+      <p>左栏：章节/阶段导航树，中栏：主内容不变，右栏：公式速查/知识提示。信息密度高，适合宽屏深度使用。</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="d" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup" style="min-height:260px">
+        <div class="mockup-header">方案 D：装饰留白 + 浮动小组件</div>
+        <div class="mockup-body">
+          <div style="width:100%; max-width:560px; margin:0 auto; background:#FFFDF7; border:1.5px solid rgba(94,77,56,0.14); border-radius:8px; padding:10px 12px; text-align:center; font-size:9px; position:relative; box-sizing:border-box;">
+            <div style="position:absolute; left:-80px; top:20px; font-size:24px; opacity:0.06;">☁️</div>
+            <div style="position:absolute; right:-70px; top:50px; font-size:20px; opacity:0.06;">⛰️</div>
+            <div style="position:absolute; left:-60px; bottom:30px; font-size:18px; opacity:0.06;">🌿</div>
+            <div style="position:absolute; right:-90px; top:10px; background:rgba(139,94,52,0.04); border:1px solid rgba(139,94,52,0.08); border-radius:8px; padding:6px 8px; font-size:7px; color:#8B5E34;">
+              <div style="font-weight:600;">⚡ 每日箴言</div>
+              <div style="margin-top:2px; color:#7A6F63;">"积分者，积微成著也"</div>
+            </div>
+            <div style="position:absolute; left:-90px; bottom:10px; background:rgba(79,125,90,0.04); border:1px solid rgba(79,125,90,0.08); border-radius:8px; padding:6px 8px; font-size:7px; color:#4F7D5A;">
+              <div style="font-weight:600;">📊 今日统计</div>
+              <div style="margin-top:2px; color:#7A6F63;">完成 12 题 · 正确率 83%</div>
+            </div>
+            <div style="font-weight:700; color:#8B5E34; margin-bottom:6px; font-size:11px;">📖 第10讲 · 定积分应用</div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:6px;">
+              <span style="flex:1; background:#F7F1E6; padding:6px; border-radius:4px; min-width:100px;">📊 掌握度 72%</span>
+              <span style="flex:1; background:#F7F1E6; padding:6px; border-radius:4px; min-width:100px;">⚡ C9 战力 580</span>
+            </div>
+            <div style="background:#FCF8EF; border:1px solid rgba(94,77,56,0.14); border-radius:6px; padding:8px; text-align:left; font-size:8px;">
+              <div style="font-weight:600; margin-bottom:3px;">题目 #5 · 旋转体体积</div>
+              <div style="height:4px; background:rgba(94,77,56,0.2); border-radius:2px; width:60%;"></div>
+            </div>
+            <div style="margin-top:6px; font-size:7px; color:#A09480;">← 保持 760px 居中，两侧加装饰 + 浮动小组件</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>D · 装饰留白 + 浮动</h3>
+      <p>保持 760px 不变，两侧加微小 SVG 装饰（云、山、竹叶等）+ 浮动工具卡片（每日箴言、今日统计气泡）。最省改动，最古典。</p>
+    </div>
+  </div>
+</div>

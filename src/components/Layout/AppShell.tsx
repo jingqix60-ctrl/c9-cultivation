@@ -1,10 +1,10 @@
 import { useState, useCallback } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
-import { useProgressStore } from '../../store/useProgressStore';
 import Header from './Header';
 import BottomNav from './BottomNav';
 import LeftSidebar from './LeftSidebar';
 import RightSidebar, { QuestionNav, TodayNotes, ChapterOps } from './RightSidebar';
+import MobileBreadcrumb from './MobileBreadcrumb';
 import RewardToast from '../Task/RewardToast';
 import { useWindowWidth } from '../../utils/useWindowWidth';
 
@@ -133,18 +133,3 @@ export default function AppShell() {
   );
 }
 
-// ── Mobile breadcrumb ──
-function MobileBreadcrumb() {
-  const chapterId = useProgressStore(s => s.chapterId);
-  const chapterTitle = useProgressStore(s => s.chapterTitle);
-  const location = useLocation();
-  const inChapter = location.pathname.includes('/chapter/') && chapterTitle;
-  if (!inChapter) return null;
-  return (
-    <div className="mobile-breadcrumb">
-      <span>下界筑基</span><span style={{ margin: '0 4px', color: 'var(--text3)' }}>/</span>
-      <span>高等数学</span><span style={{ margin: '0 4px', color: 'var(--text3)' }}>/</span>
-      <span className="current">第{chapterId}讲</span>
-    </div>
-  );
-}

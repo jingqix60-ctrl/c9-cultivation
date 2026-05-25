@@ -100,14 +100,12 @@ export default function FinalReport() {
 
       {/* ── Actions ── */}
       <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 14, flexWrap: 'wrap' }}>
+        <button className="btn btn-ghost btn-sm" onClick={() => navigate('/')}>🏠 返回首页</button>
         <button className="btn btn-ghost btn-sm" onClick={() => navigate(base)}>📊 仪表盘</button>
         <button className="btn btn-ghost btn-sm" onClick={() => navigate(`${base}/map`)}>🗺️ 章节地图</button>
         <button className="btn btn-danger btn-sm" onClick={() => {
           if (confirm('确定要重置本章所有进度吗？此操作不可撤销。')) { resetChapter(); navigate(base); }
         }}>🔄 重置进度</button>
-        <button className="btn btn-ghost btn-sm" onClick={() => navigate('/math/zhangyu30')}>
-          📘 全部章节
-        </button>
       </div>
     </div>
   );

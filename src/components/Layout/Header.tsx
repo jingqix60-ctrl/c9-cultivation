@@ -23,8 +23,8 @@ export default function Header() {
       </div>
       {inChapter && <span className={`realm ${realm.className}`}>{realm.name}</span>}
       {location.pathname !== '/' && (
-        <button className="btn btn-ghost btn-sm" onClick={() => navigate(-1)}>
-          ← 返回
+        <button className="btn btn-ghost btn-sm" onClick={() => { if (inChapter) navigate('/'); else navigate(-1); }}>
+          ← {inChapter ? '首页' : '返回'}
         </button>
       )}
     </div>

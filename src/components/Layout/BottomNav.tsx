@@ -12,16 +12,21 @@ export default function BottomNav() {
 
   if (inChapter) {
     const items = [
+      { path: '/', label: '首页', icon: '🏠' },
       { path: `/chapter/${chapterId}/dashboard`, label: '仪表盘', icon: '📊' },
       { path: `/chapter/${chapterId}/map`, label: '地图', icon: '🗺️' },
       { path: `/chapter/${chapterId}/task`, label: '修炼', icon: '⚔️' },
       { path: `/chapter/${chapterId}/review`, label: '心魔本', icon: '📖' },
       { path: `/chapter/${chapterId}/knowledge`, label: '知识', icon: '📋' },
     ];
+    const isActive = (path: string) => {
+      if (path === '/') return location.pathname === '/';
+      return location.pathname.includes(path.split('/').slice(-2).join('/'));
+    };
     return (
       <nav className="bottom-nav">
         {items.map(item => (
-          <button key={item.path} className={`nav-item ${location.pathname.includes(item.path.split('/').slice(-2).join('/')) ? 'active' : ''}`}
+          <button key={item.path} className={`nav-item ${isActive(item.path) ? 'active' : ''}`}
             onClick={() => navigate(item.path)}>
             <span className="nav-icon">{item.icon}</span>
             <span style={{ display:'flex',alignItems:'center',gap:2 }}>
