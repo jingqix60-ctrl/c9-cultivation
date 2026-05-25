@@ -4,106 +4,6 @@ import { useProgressStore } from '../../store/useProgressStore';
 import HintPanel from './HintPanel';
 import AnswerPanel from './AnswerPanel';
 import LatexContent from './LatexContent';
-import katex from 'katex';
-
-const FORMULAS = [
-  { title: '绕 x 轴（圆盘法）', latex: 'V_x = \\pi\\int_a^b y^2\\,dx' },
-  { title: '绕 y 轴（柱壳法）', latex: 'V_y = 2\\pi\\int_a^b x\\cdot y\\,dx' },
-  { title: '两曲线绕 x 轴', latex: 'V = \\pi\\int_a^b (y_2^2 - y_1^2)\\,dx' },
-  { title: '两曲线绕 y 轴', latex: 'V = 2\\pi\\int_a^b x(y_2 - y_1)\\,dx' },
-  { title: '平行截面体积', latex: 'V = \\int_a^b A(x)\\,dx' },
-  { title: '参数方程绕 x 轴', latex: 'V = \\pi\\int y^2\\cdot x\'(t)\\,dt' },
-  { title: '绕非坐标轴', latex: 'V = 2\\pi\\iint_D r\\,d\\sigma' },
-  { title: 'Pappus 定理', latex: 'V = S \\cdot 2\\pi d' },
-];
-
-interface SidebarProps { base: string; }
-
-function Sidebar({ base }: SidebarProps) {
-  const [filter, setFilter] = useState<'all' | 'undone' | 'done' | 'retry'>('all');
-  const [showFormulas, setShowFormulas] = useState(true);
-  const navigate = useNavigate();
-  const tasks = useProgressStore(s => s.tasks);
-  const done = useProgressStore(s => s.done);
-  const retry = useProgressStore(s => s.retry);
-  const currentTask = useProgressStore(s => s.currentTask);
-
-  const filtered = tasks.filter(t => {
-    switch (filter) {
-      case 'undone': return !done.includes(t.id) && !retry.includes(t.id);
-      case 'done': return done.includes(t.id);
-      case 'retry': return retry.includes(t.id);
-      default: return true;
-    }
-  });
-  const nextUndone = tasks.find(t => !done.includes(t.id) && !retry.includes(t.id) && t.id > currentTask);
-  const nextRetry = tasks.find(t => retry.includes(t.id) && t.id !== currentTask);
-  const jump = (id: number) => navigate(`${base}/task/${id}`);
-
-  return (
-    <div style={{
-      background: 'var(--surface)', border: '1px solid var(--border)',
-      borderRadius: 'var(--radius-lg)', padding: 14, boxShadow: 'var(--shadow)',
-      position: 'sticky', top: 80, maxHeight: 'calc(100vh - 100px)', overflowY: 'auto',
-    }}>
-      <div style={{ fontWeight: 700, fontSize: 12, fontFamily: 'var(--font-title)', marginBottom: 8, color: 'var(--accent)' }}>
-        题号导航
-      </div>
-
-      {/* Quick jump */}
-      <div style={{ display: 'flex', gap: 3, marginBottom: 8, flexWrap: 'wrap' }}>
-        <button onClick={() => jump(0)} className="btn btn-ghost btn-sm" style={{ fontSize: 10, padding: '2px 6px' }}>⏮</button>
-        {nextUndone && <button onClick={() => jump(nextUndone.id)} className="btn btn-ghost btn-sm" style={{ fontSize: 10, padding: '2px 6px' }}>▶</button>}
-        {nextRetry && <button onClick={() => jump(nextRetry.id)} className="btn btn-danger btn-sm" style={{ fontSize: 10, padding: '2px 6px' }}>🔄</button>}
-      </div>
-
-      {/* Filter */}
-      <div style={{ display: 'flex', gap: 3, marginBottom: 8 }}>
-        {(['all', 'undone', 'done', 'retry'] as const).map(f => (
-          <button key={f} onClick={() => setFilter(f)}
-            className={`btn btn-sm ${filter === f ? 'btn-primary' : 'btn-ghost'}`}
-            style={{ padding: '2px 6px', fontSize: 10 }}>
-            {{ all: '全', undone: '未', done: '✓', retry: '魔' }[f]}
-          </button>
-        ))}
-      </div>
-
-      {/* Numbers */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3, marginBottom: 10 }}>
-        {filtered.map(t => {
-          const isD = done.includes(t.id), isR = retry.includes(t.id), isC = t.id === currentTask;
-          let cls = 'pending'; if (isC) cls = 'current'; else if (isR) cls = 'retry'; else if (isD) cls = 'done';
-          return <button key={t.id} className={`qnav-num ${cls}`} onClick={() => jump(t.id)} title={`#${t.id + 1}`}>{t.id + 1}</button>;
-        })}
-      </div>
-
-      {/* Formula toggle */}
-      <div style={{ borderTop: '1px solid var(--border)', paddingTop: 8 }}>
-        <button className="btn btn-ghost btn-sm" style={{ fontSize: 10, padding: '2px 8px', width: '100%', justifyContent: 'space-between' }}
-          onClick={() => setShowFormulas(!showFormulas)}>
-          公式速查 {showFormulas ? '▲' : '▼'}
-        </button>
-        {showFormulas && (
-          <div style={{ marginTop: 6 }}>
-            {FORMULAS.map((f, i) => (
-              <div key={i} style={{
-                padding: '5px 8px', marginBottom: 3, borderRadius: 'var(--radius-sm)',
-                background: 'var(--accent-soft)',
-                fontSize: 11, lineHeight: 1.5,
-              }}>
-                <div style={{ fontSize: 9, color: 'var(--text3)' }}>{f.title}</div>
-                <span dangerouslySetInnerHTML={{
-                  __html: katex.renderToString(f.latex, { throwOnError: false, displayMode: false })
-                }} />
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
 function splitSubQuestions(text: string): string[] {
   const markers = text.match(/(?:^|\n)\s*(?:\(\d+\)|\d+[\.\)]|[①②③④⑤⑥⑦⑧⑨⑩]|\*\*题\s*\d+\*\*)/g);
   if (!markers || markers.length <= 1) return [text];
@@ -138,8 +38,6 @@ export default function TaskPage() {
 
   const [showHint, setShowHint] = useState(false);
   const [showAnswer, setShowAnswer] = useState(false);
-  const [sidebarVisible, setSidebarVisible] = useState(true);
-
   const taskId = tid !== undefined ? parseInt(tid) : currentTask;
   const task = tasks[taskId];
 
@@ -159,7 +57,10 @@ export default function TaskPage() {
       <div className="anim-in" style={{ textAlign: 'center', padding: 48 }}>
         <div style={{ fontSize: 48, marginBottom: 12 }}>👑</div>
         <p style={{ color: 'var(--text2)' }}>所有任务已完成，心魔已清空。</p>
-        <button className="btn btn-primary" style={{ marginTop: 12 }} onClick={() => navigate(`${base}/report`)}>查看战报</button>
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 12 }}>
+          <button className="btn btn-primary" onClick={() => navigate(`${base}/report`)}>查看战报</button>
+          <button className="btn btn-ghost" onClick={() => navigate('/')}>🏠 返回首页</button>
+        </div>
       </div>
     );
   }
@@ -184,7 +85,7 @@ export default function TaskPage() {
   };
 
   return (
-    <div className="anim-in" style={{ display: 'flex', gap: 18, alignItems: 'flex-start' }}>
+    <div className="anim-in">
       {/* ── Main Column ── */}
       <div style={{ flex: 1, minWidth: 0 }}>
         <div className="task-card">
@@ -199,11 +100,6 @@ export default function TaskPage() {
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <span style={{ fontSize: 11, color: 'var(--text3)', fontWeight: 600 }}>#{task.id + 1}/{total}</span>
-              {/* Mobile sidebar toggle */}
-              <button className="btn btn-ghost btn-sm sidebar-toggle" style={{ fontSize: 10, padding: '2px 8px' }}
-                onClick={() => setSidebarVisible(!sidebarVisible)}>
-                {sidebarVisible ? '隐藏侧栏' : '☰ 题号'}
-              </button>
             </div>
           </div>
 
@@ -276,17 +172,12 @@ export default function TaskPage() {
         </div>
 
         <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 4 }}>
+          <button className="btn btn-ghost btn-sm" onClick={() => navigate('/')}>🏠 首页</button>
           <button className="btn btn-ghost btn-sm" onClick={() => navigate(`${base}/map`)}>🗺️ 地图</button>
           <button className="btn btn-ghost btn-sm" onClick={() => navigate(base)}>📊 仪表盘</button>
         </div>
       </div>
 
-      {/* ── Sidebar Column (desktop) ── */}
-      <div className="task-sidebar-col" style={{
-        width: 230, flexShrink: 0, display: sidebarVisible ? 'block' : 'none',
-      }}>
-        <Sidebar base={base} />
-      </div>
     </div>
   );
 }

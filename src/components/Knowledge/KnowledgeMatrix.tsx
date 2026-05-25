@@ -1,7 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useProgressStore } from '../../store/useProgressStore';
-import ResetModal from '../Common/ResetModal';
 
 interface KPItem {
   name: string;
@@ -13,7 +12,6 @@ interface KPItem {
 
 export default function KnowledgeMatrix() {
   const navigate = useNavigate();
-  const [showReset, setShowReset] = useState(false);
   const chapterId = useProgressStore(s => s.chapterId);
   const tasks = useProgressStore(s => s.tasks);
   const done = useProgressStore(s => s.done);
@@ -74,9 +72,7 @@ export default function KnowledgeMatrix() {
 
       <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
         <button className="btn btn-ghost btn-sm" onClick={() => navigate(base)}>← 返回</button>
-        <button className="btn btn-danger btn-sm" onClick={() => setShowReset(true)}>🔄 重置本章</button>
       </div>
-      {showReset && <ResetModal onClose={() => setShowReset(false)} />}
     </div>
   );
 }
