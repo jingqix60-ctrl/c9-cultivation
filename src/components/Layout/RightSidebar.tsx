@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useProgressStore } from '../../store/useProgressStore';
 import ImportModal from '../Common/ImportModal';
@@ -10,9 +10,30 @@ export function TodayNotes() {
   const chapterId = useProgressStore(s => s.chapterId);
   const chapterTitle = useProgressStore(s => s.chapterTitle);
   const retry = useProgressStore(s => s.retry);
-  const reviewSchedule = useProgressStore(s => s.getReviewSchedule());
   const exportAllData = useProgressStore(s => s.exportAllData);
   const [showImport, setShowImport] = useState(false);
+
+  const reviewSchedule = useMemo(() => {
+    const doneCount = stats.doneCount;
+    const totalCount = stats.totalCount;
+    let intervalDays: number;
+    if (doneCount === 0) intervalDays = 0;
+    else if (retry.length > 0) intervalDays = 1;
+    else {
+      const pct = doneCount / Math.max(1, totalCount);
+      if (pct < 0.3) intervalDays = 1;
+      else if (pct < 0.6) intervalDays = 3;
+      else if (pct < 0.9) intervalDays = 7;
+      else intervalDays = 14;
+    }
+    const nextDate = new Date();
+    nextDate.setDate(nextDate.getDate() + intervalDays);
+    return {
+      nextReviewDate: nextDate.toISOString().slice(0, 10),
+      intervalDays,
+      reviewCount: retry.length,
+    };
+  }, [stats.doneCount, stats.totalCount, retry.length]);
 
   const handleExport = () => {
     const { json, filename } = exportAllData();
