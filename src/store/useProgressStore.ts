@@ -44,8 +44,8 @@ export const useProgressStore = create<ProgressState>((set, get) => ({
     const tasks = data.tasks;
     const saved = loadProgress(chapterId);
     const state = get();
-    // Only init if not already or if chapter changed
-    if (state.chapterId === chapterId && state.tasks.length > 0) return;
+    // Reload if chapter changed or task count changed (data updated)
+    if (state.chapterId === chapterId && state.tasks.length === tasks.length) return;
 
     const current = saved.done.length >= tasks.length && saved.retry.length === 0
       ? -1
