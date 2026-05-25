@@ -54,6 +54,7 @@ export interface Task {
   afterMastery: string;
   knowledgePoints: string[];
   mistakeTypes: MistakeType[];
+  moduleId?: string;
 }
 
 // ── Chapter Data (importable JSON format) ──
@@ -66,6 +67,13 @@ export interface ChapterData {
   stages: { id: number; name: string }[];
   tasks: Task[];
   knowledgePoints: string[];
+  modules?: ChapterModule[];
+}
+
+export interface ChapterModule {
+  id: string;
+  name: string;
+  order: number;
 }
 
 // ── Chapter Registry Entry ──
