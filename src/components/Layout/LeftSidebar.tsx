@@ -11,6 +11,7 @@ export default function LeftSidebar({ onCollapse }: { onCollapse?: () => void })
   const done = useProgressStore(s => s.done);
   const retry = useProgressStore(s => s.retry);
   const chapterModules = useProgressStore(s => s.chapterModules);
+  const currentTask = useProgressStore(s => s.currentTask);
   const inChapter = location.pathname.includes('/chapter/') && chapterTitle;
 
   // Derive modules: prefer chapterModules from store, else auto-extract from stageName
@@ -101,7 +102,6 @@ export default function LeftSidebar({ onCollapse }: { onCollapse?: () => void })
             const total = s?.total || 0;
             const doneCount = s?.done || 0;
             const hasRetry = (s?.retry || 0) > 0;
-            const currentTask = useProgressStore.getState().currentTask;
             const currentModuleId = (tasks[currentTask] as any)?.moduleId;
             const isCurrentModule = currentModuleId === m.id;
 
