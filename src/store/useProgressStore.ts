@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import type { Task, ChapterData } from '../data/types';
-import { loadProgress, saveProgress, ensureProfile, type StoredProgress } from '../utils/storage';
-import { calcStats, getNextTask, type ChapterStats } from '../utils/progress';
+import { loadProgress, saveProgress, ensureProfile, exportAllProgress, validateImportData, type StoredProgress } from '../utils/storage';
+import { calcStats, getNextTask, calcReviewSchedule, type ChapterStats } from '../utils/progress';
 
 interface ProgressState {
   chapterId: number;
@@ -29,6 +29,10 @@ interface ProgressState {
   resetChapter: () => void;
   removeRetry: (taskId: number) => void;
   resetOptions: (opts: { done?: boolean; retry?: boolean }) => void;
+  exportAllData: () => { json: string; filename: string };
+  importAllData: (json: string) => { success: boolean; error?: string };
+  getReviewSchedule: () => { nextReviewDate: string; intervalDays: number; reviewCount: number };
+  chapterModules: import('../data/types').ChapterModule[];
 }
 
 export const useProgressStore = create<ProgressState>((set, get) => ({
@@ -43,6 +47,7 @@ export const useProgressStore = create<ProgressState>((set, get) => ({
   toastType: 'gr' as const,
   chapterTitle: '',
   profileId: '',
+  chapterModules: [],
 
   init: (chapterId, data) => {
     const profile = ensureProfile();
@@ -69,6 +74,7 @@ export const useProgressStore = create<ProgressState>((set, get) => ({
       currentTask: current >= 0 ? current : 0,
       completed: saved.completed || (saved.done.length >= tasks.length && saved.retry.length === 0),
       stats,
+      chapterModules: (data as any).modules || [],
     });
   },
 
@@ -188,5 +194,38 @@ export const useProgressStore = create<ProgressState>((set, get) => ({
     const progress: StoredProgress = { done: newDone, retry: newRetry, currentTask: 0, completed: false };
     saveProgress(profileId, chapterId, progress);
     set({ done: newDone, retry: newRetry, currentTask: 0, completed: false, stats: calcStats(tasks, newDone, newRetry) });
+  },
+
+  exportAllData: () => {
+    const { chapterId, chapterTitle, done, retry, currentTask, stats } = get();
+    const data = exportAllProgress();
+    if (data.chapters[String(chapterId)]) {
+      data.chapters[String(chapterId)].chapterTitle = chapterTitle;
+      data.chapters[String(chapterId)].masteryPct = stats.mastery;
+    } else {
+      data.chapters[String(chapterId)] = {
+        chapterId, chapterTitle, done: [...done], retry: [...retry],
+        currentTask, completed: get().completed, masteryPct: stats.mastery,
+      };
+    }
+    const filename = `c9-progress-${data.profile.name}-${new Date().toISOString().slice(0,10)}.json`;
+    return { json: JSON.stringify(data, null, 2), filename };
+  },
+
+  importAllData: (json: string) => {
+    try {
+      const data = JSON.parse(json);
+      if (!validateImportData(data)) {
+        return { success: false, error: 'JSON 格式不正确：缺少必要字段 (version, profile, chapters)' };
+      }
+      return { success: true };
+    } catch (e) {
+      return { success: false, error: `JSON 解析失败：${(e as Error).message}` };
+    }
+  },
+
+  getReviewSchedule: () => {
+    const { tasks, done, retry } = get();
+    return calcReviewSchedule(tasks, done, retry);
   },
 }));

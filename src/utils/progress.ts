@@ -80,3 +80,31 @@ export function getNextTask(tasks: Task[], done: number[], retry: number[], curr
   }
   return -1;
 }
+
+export interface ReviewSchedule {
+  nextReviewDate: string;
+  intervalDays: number;
+  reviewCount: number;
+}
+
+export function calcReviewSchedule(tasks: Task[], done: number[], retry: number[]): ReviewSchedule {
+  const doneCount = done.length;
+  const totalCount = tasks.length;
+  let intervalDays: number;
+  if (doneCount === 0) intervalDays = 0;
+  else if (retry.length > 0) intervalDays = 1;
+  else {
+    const pct = doneCount / Math.max(1, totalCount);
+    if (pct < 0.3) intervalDays = 1;
+    else if (pct < 0.6) intervalDays = 3;
+    else if (pct < 0.9) intervalDays = 7;
+    else intervalDays = 14;
+  }
+  const nextDate = new Date();
+  nextDate.setDate(nextDate.getDate() + intervalDays);
+  return {
+    nextReviewDate: nextDate.toISOString().slice(0, 10),
+    intervalDays,
+    reviewCount: retry.length,
+  };
+}

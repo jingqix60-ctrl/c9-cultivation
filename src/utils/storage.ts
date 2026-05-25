@@ -114,3 +114,58 @@ export function importProfile(id: string, json: string): void {
   }
   setActiveProfileId(id);
 }
+
+// ── Chapter-level export/import ──
+
+export interface ExportedProgress {
+  version: number;
+  exportedAt: string;
+  profile: { id: string; name: string; createdAt: string };
+  chapters: Record<string, {
+    chapterId: number;
+    chapterTitle: string;
+    done: number[];
+    retry: number[];
+    currentTask: number;
+    completed: boolean;
+    masteryPct: number;
+  }>;
+}
+
+export function exportAllProgress(): ExportedProgress {
+  const profile = ensureProfile();
+  const chapters: ExportedProgress['chapters'] = {};
+  const keys = Object.keys(localStorage).filter(k => k.startsWith(`${PROFILE_PREFIX}${profile.id}_`));
+  for (const k of keys) {
+    const chapterId = parseInt(k.split('_').pop() || '0');
+    const progress = loadProgress(profile.id, chapterId);
+    chapters[String(chapterId)] = {
+      chapterId,
+      chapterTitle: '',
+      done: progress.done,
+      retry: progress.retry,
+      currentTask: progress.currentTask,
+      completed: progress.completed,
+      masteryPct: 0,
+    };
+  }
+  return { version: 1, exportedAt: new Date().toISOString(), profile, chapters };
+}
+
+export function validateImportData(data: unknown): data is ExportedProgress {
+  if (!data || typeof data !== 'object') return false;
+  const d = data as Record<string, unknown>;
+  return typeof d.version === 'number'
+    && typeof d.exportedAt === 'string'
+    && d.profile != null && typeof (d.profile as Record<string,unknown>).id === 'string'
+    && d.chapters != null && typeof d.chapters === 'object';
+}
+
+export function importAllProgress(data: ExportedProgress, targetProfileId: string): void {
+  for (const [, ch] of Object.entries(data.chapters)) {
+    saveProgress(targetProfileId, ch.chapterId, {
+      done: ch.done, retry: ch.retry, currentTask: ch.currentTask, completed: ch.completed,
+    });
+  }
+  setActiveProfileId(targetProfileId);
+}
