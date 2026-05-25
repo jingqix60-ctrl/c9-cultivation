@@ -380,4 +380,9 @@ a:hover { text-decoration: underline; }
   .knowledge-grid { grid-template-columns: 1fr; }
   .qnav-panel { width: 100%; }
   .qnav-overlay.open { display: block; }
+  .task-sidebar-col { display: none !important; }
+  .sidebar-toggle { display: inline-flex !important; }
+}
+@media (min-width: 601px) {
+  .sidebar-toggle { display: none !important; }
 }
