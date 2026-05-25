@@ -2,9 +2,12 @@ import { useNavigate } from 'react-router-dom';
 import { useProgressStore } from '../store/useProgressStore';
 import { STAGES, SUBJECTS } from '../data/stages';
 import { getAllChapters } from '../data/math/zhangyu30';
+import { chapter10Data } from '../data/math/zhangyu30/chapter10';
+import ProfileSwitcher from '../components/Common/ProfileSwitcher';
 
 export default function HomePage() {
   const navigate = useNavigate();
+  const init = useProgressStore(s => s.init);
   const storeChapterId = useProgressStore(s => s.chapterId);
   const storeTitle = useProgressStore(s => s.chapterTitle);
   const stats = useProgressStore(s => s.stats);
@@ -15,8 +18,15 @@ export default function HomePage() {
   const totalTasks = available.reduce((s, c) => s + c.taskCount, 0);
   const dueRetryCount = retry.length;
 
+  const handleProfileChange = () => {
+    init(10, chapter10Data);
+  };
+
   return (
     <div className="anim-in">
+      {/* Profile */}
+      <ProfileSwitcher onProfileChange={handleProfileChange} />
+
       {/* Hero */}
       <div className="hero">
         <div className="hero-icon">📖</div>

@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useProgressStore } from '../../store/useProgressStore';
 import { MistakeTypeLabels, type MistakeType } from '../../data/types';
+import ResetModal from '../Common/ResetModal';
 
 const CATEGORY_ICONS: Record<string, string> = {
   formula: '📝',
@@ -16,7 +18,9 @@ const CATEGORY_ICONS: Record<string, string> = {
 
 export default function ReviewQueue() {
   const navigate = useNavigate();
+  const [showReset, setShowReset] = useState(false);
   const chapterId = useProgressStore(s => s.chapterId);
+  const removeRetry = useProgressStore(s => s.removeRetry);
   const tasks = useProgressStore(s => s.tasks);
   const retry = useProgressStore(s => s.retry);
   const base = `/chapter/${chapterId}`;
@@ -90,6 +94,10 @@ export default function ReviewQueue() {
               <span style={{ color: 'var(--text3)', fontSize: 10, flexShrink: 0 }}>
                 {task.source}
               </span>
+              <button className="btn btn-ghost btn-sm" style={{ fontSize: 9, padding: '2px 6px', flexShrink: 0, marginLeft: 4 }}
+                onClick={(e) => { e.stopPropagation(); removeRetry(task.id); }}>
+                移出
+              </button>
             </button>
           ))}
         </div>
@@ -111,16 +119,20 @@ export default function ReviewQueue() {
               <span style={{ color: 'var(--text3)', fontSize: 10, flexShrink: 0 }}>
                 {task.source}
               </span>
+              <button className="btn btn-ghost btn-sm" style={{ fontSize: 9, padding: '2px 6px', flexShrink: 0, marginLeft: 4 }}
+                onClick={(e) => { e.stopPropagation(); removeRetry(task.id); }}>
+                移出
+              </button>
             </button>
           ))}
         </div>
       )}
 
-      <div style={{ marginTop: 10 }}>
-        <button className="btn btn-ghost btn-sm" onClick={() => navigate(base)}>
-          ← 返回仪表盘
-        </button>
+      <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+        <button className="btn btn-ghost btn-sm" onClick={() => navigate(base)}>← 返回</button>
+        <button className="btn btn-danger btn-sm" onClick={() => setShowReset(true)}>🔄 重置本章</button>
       </div>
+      {showReset && <ResetModal onClose={() => setShowReset(false)} />}
     </div>
   );
 }

@@ -31,8 +31,9 @@ export default function QuestionNav({ base }: Props) {
     <>
       {/* Toggle button */}
       <button className="qnav-toggle" onClick={() => setOpen(!open)}
-        title="题号导航">
-        ☰
+        title="题号导航"
+        style={{ width: 'auto', padding: '8px 12px', borderRadius: '20px', fontSize: 12, fontWeight: 600 }}>
+        ☰ 题号
       </button>
 
       {/* Mobile overlay */}

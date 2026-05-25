@@ -1,10 +1,11 @@
 import { create } from 'zustand';
 import type { Task, ChapterData } from '../data/types';
-import { loadProgress, saveProgress, type StoredProgress } from '../utils/storage';
+import { loadProgress, saveProgress, ensureProfile, type StoredProgress } from '../utils/storage';
 import { calcStats, getNextTask, type ChapterStats } from '../utils/progress';
 
 interface ProgressState {
   chapterId: number;
+  profileId: string;
   tasks: Task[];
   done: number[];
   retry: number[];
@@ -41,13 +42,14 @@ export const useProgressStore = create<ProgressState>((set, get) => ({
   toastMessage: null,
   toastType: 'gr' as const,
   chapterTitle: '',
+  profileId: '',
 
   init: (chapterId, data) => {
+    const profile = ensureProfile();
     const tasks = data.tasks;
-    const saved = loadProgress(chapterId);
+    const saved = loadProgress(profile.id, chapterId);
     const state = get();
-    // Reload if chapter changed or task count changed (data updated)
-    if (state.chapterId === chapterId && state.tasks.length === tasks.length) return;
+    if (state.chapterId === chapterId && state.tasks.length === tasks.length && state.profileId === profile.id) return;
 
     const current = saved.done.length >= tasks.length && saved.retry.length === 0
       ? -1
@@ -59,6 +61,7 @@ export const useProgressStore = create<ProgressState>((set, get) => ({
 
     set({
       chapterId,
+      profileId: profile.id,
       chapterTitle: data.chapterTitle,
       tasks,
       done: saved.done,
@@ -70,7 +73,7 @@ export const useProgressStore = create<ProgressState>((set, get) => ({
   },
 
   markDone: () => {
-    const { chapterId, tasks, done, retry, currentTask } = get();
+    const { chapterId, profileId, tasks, done, retry, currentTask } = get();
     if (currentTask < 0 || currentTask >= tasks.length) return;
 
     const newDone = [...done, currentTask];
@@ -83,7 +86,7 @@ export const useProgressStore = create<ProgressState>((set, get) => ({
       currentTask,
       completed: newDone.length >= tasks.length && newRetry.length === 0,
     };
-    saveProgress(chapterId, progress);
+    saveProgress(profileId, chapterId, progress);
 
     const stats = calcStats(tasks, newDone, newRetry);
 
@@ -98,7 +101,7 @@ export const useProgressStore = create<ProgressState>((set, get) => ({
   },
 
   markRetry: () => {
-    const { chapterId, tasks, done, retry, currentTask } = get();
+    const { chapterId, profileId, tasks, done, retry, currentTask } = get();
     if (currentTask < 0 || currentTask >= tasks.length) return;
 
     const newRetry = retry.includes(currentTask) ? retry : [...retry, currentTask];
@@ -110,7 +113,7 @@ export const useProgressStore = create<ProgressState>((set, get) => ({
       currentTask,
       completed: false,
     };
-    saveProgress(chapterId, progress);
+    saveProgress(profileId, chapterId, progress);
 
     const stats = calcStats(tasks, newDone, newRetry);
 
@@ -125,42 +128,42 @@ export const useProgressStore = create<ProgressState>((set, get) => ({
   },
 
   goToTask: (taskId) => {
-    const { chapterId, tasks, done, retry } = get();
+    const { chapterId, profileId, tasks, done, retry } = get();
     const stats = calcStats(tasks, done, retry);
     set({ currentTask: taskId, stats });
 
     const progress: StoredProgress = { done, retry, currentTask: taskId, completed: get().completed };
-    saveProgress(chapterId, progress);
+    saveProgress(profileId, chapterId, progress);
   },
 
   nextTask: () => {
-    const { tasks, done, retry, currentTask, chapterId } = get();
+    const { tasks, done, retry, currentTask, chapterId, profileId } = get();
     const nxt = getNextTask(tasks, done, retry, currentTask);
     if (nxt >= 0) {
       const stats = calcStats(tasks, done, retry);
       set({ currentTask: nxt, stats });
       const progress: StoredProgress = { done, retry, currentTask: nxt, completed: false };
-      saveProgress(chapterId, progress);
+      saveProgress(profileId, chapterId, progress);
     }
   },
 
   prevTask: () => {
-    const { tasks, done, currentTask, chapterId, retry } = get();
+    const { tasks, done, currentTask, chapterId, profileId, retry } = get();
     // Go to previous done task
     const allVisited = [...done, ...retry].filter(id => id < currentTask);
     const prev = allVisited.length > 0 ? Math.max(...allVisited) : 0;
     const stats = calcStats(tasks, done, retry);
     set({ currentTask: prev, stats });
     const progress: StoredProgress = { done, retry, currentTask: prev, completed: get().completed };
-    saveProgress(chapterId, progress);
+    saveProgress(profileId, chapterId, progress);
   },
 
   clearToast: () => set({ toastMessage: null }),
 
   resetChapter: () => {
-    const { chapterId } = get();
+    const { chapterId, profileId } = get();
     const progress: StoredProgress = { done: [], retry: [], currentTask: 0, completed: false };
-    saveProgress(chapterId, progress);
+    saveProgress(profileId, chapterId, progress);
     set({
       done: [],
       retry: [],
@@ -171,19 +174,19 @@ export const useProgressStore = create<ProgressState>((set, get) => ({
   },
 
   removeRetry: (taskId) => {
-    const { chapterId, tasks, done, retry } = get();
+    const { chapterId, profileId, tasks, done, retry } = get();
     const newRetry = retry.filter(id => id !== taskId);
     const progress: StoredProgress = { done, retry: newRetry, currentTask: taskId, completed: false };
-    saveProgress(chapterId, progress);
+    saveProgress(profileId, chapterId, progress);
     set({ retry: newRetry, stats: calcStats(tasks, done, newRetry) });
   },
 
   resetOptions: (opts) => {
-    const { chapterId, tasks, done, retry } = get();
+    const { chapterId, profileId, tasks, done, retry } = get();
     const newDone = opts.done ? [] : done;
     const newRetry = opts.retry ? [] : retry;
     const progress: StoredProgress = { done: newDone, retry: newRetry, currentTask: 0, completed: false };
-    saveProgress(chapterId, progress);
+    saveProgress(profileId, chapterId, progress);
     set({ done: newDone, retry: newRetry, currentTask: 0, completed: false, stats: calcStats(tasks, newDone, newRetry) });
   },
 }));
