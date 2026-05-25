@@ -20,6 +20,17 @@ export default function TaskPage() {
 
   const [showHint, setShowHint] = useState(false);
   const [showAnswer, setShowAnswer] = useState(false);
+  const [jumpInput, setJumpInput] = useState('');
+
+  const handleJump = () => {
+    const num = parseInt(jumpInput);
+    if (num >= 1 && num <= tasks.length) {
+      const idx = num - 1;
+      goToTask(idx);
+      navigate(`${base}/task/${idx}`);
+      setJumpInput('');
+    }
+  };
 
   const taskIdParam = tid ?? id;
   const taskId = taskIdParam !== undefined ? parseInt(taskIdParam) : currentTask;
@@ -98,9 +109,26 @@ export default function TaskPage() {
               ⏱ {task.time}
             </span>
           </div>
-          <span style={{ fontSize: 11, color: 'var(--text3)', fontWeight: 600 }}>
-            #{task.id + 1} / {total}
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ fontSize: 11, color: 'var(--text3)', fontWeight: 600 }}>
+              #{task.id + 1} / {total}
+            </span>
+            <input
+              type="number"
+              min={1}
+              max={total}
+              value={jumpInput}
+              onChange={e => setJumpInput(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') handleJump(); }}
+              placeholder="跳转"
+              style={{
+                width: 56, padding: '3px 6px', fontSize: 11,
+                background: 'var(--surface3)', color: 'var(--text)',
+                border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)',
+                textAlign: 'center', fontFamily: 'inherit',
+              }}
+            />
+          </div>
         </div>
 
         {/* ── Title ── */}

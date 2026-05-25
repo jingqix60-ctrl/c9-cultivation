@@ -96,7 +96,7 @@ export const chapter10Data: ChapterData = {
       reward: { mastery: 4, method: 2, calc: 3, geometry: 2, c9: 1 },
       knowledgePoints: ['柱壳法', '参数方程旋转体', '绕y轴'],
       mistakeTypes: ['parametric_dx'],
-      question: '计算由摆线 $x=a(t-\\sin t),y=a(1-\\cos t)$（$a>0,0\\le t\\le2\\pi$）与 $x$ 轴围成的区域绕 $y$ 轴旋转所得体积。\n\n（答案：$6\\pi^3 a^3$）',
+      question: '计算由摆线 $x=a(t-\\sin t),y=a(1-\\cos t)$（$a>0,0\\le t\\le2\\pi$）与 $x$ 轴围成的区域绕 $y$ 轴旋转所得体积。',
       hint: '$V_y=2\\pi\\int xy\\,dx$。$dx=x\'(t)dt$，$x\'(t)=a(1-\\cos t)$。',
       answer: '$V_y=2\\pi\\int_0^{2\\pi a}x\\cdot y\\,dx$\n$=2\\pi\\int_0^{2\\pi}a(t-\\sin t)\\cdot a(1-\\cos t)\\cdot a(1-\\cos t)\\,dt$\n$=2\\pi a^3\\int_0^{2\\pi}(t-\\sin t)(1-\\cos t)^2dt$\n展开后用三角函数周期性质，代入得 $V=6\\pi^3 a^3$。',
       method: '参数方程+柱壳法：$V=2\\pi\\int xy\\,dx$，$x,y,dx$ 都用 $t$ 表达。关键：$dx=x\'(t)dt$ 不能忘。',
