@@ -1,7 +1,10 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useProgressStore } from '../../store/useProgressStore';
+import ResetModal from '../Common/ResetModal';
 
 export default function Dashboard() {
+  const [showReset, setShowReset] = useState(false);
   const navigate = useNavigate();
   const stats = useProgressStore(s => s.stats);
   const tasks = useProgressStore(s => s.tasks);
@@ -134,7 +137,11 @@ export default function Dashboard() {
             📖 心魔本 ({stats.retryCount})
           </button>
         )}
+        <button className="btn btn-ghost btn-sm" onClick={() => setShowReset(true)}>
+          🔄 重置本章
+        </button>
       </div>
+      {showReset && <ResetModal onClose={() => setShowReset(false)} />}
     </div>
   );
 }

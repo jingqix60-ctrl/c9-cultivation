@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useProgressStore } from '../store/useProgressStore';
+import { STAGES, SUBJECTS } from '../data/stages';
 import { getAllChapters } from '../data/math/zhangyu30';
 
 export default function HomePage() {
@@ -7,24 +8,26 @@ export default function HomePage() {
   const storeChapterId = useProgressStore(s => s.chapterId);
   const storeTitle = useProgressStore(s => s.chapterTitle);
   const stats = useProgressStore(s => s.stats);
+  const retry = useProgressStore(s => s.retry);
 
-  const allChapters = getAllChapters();
-  const availableChapters = allChapters.filter(c => c.status === 'available');
-  const totalTasks = availableChapters.reduce((s, c) => s + c.taskCount, 0);
+  const chapters = getAllChapters();
+  const available = chapters.filter(c => c.status === 'available');
+  const totalTasks = available.reduce((s, c) => s + c.taskCount, 0);
+  const dueRetryCount = retry.length;
 
   return (
     <div className="anim-in">
-      {/* ── Hero ── */}
+      {/* Hero */}
       <div className="hero">
-        <div className="hero-icon">🗡️</div>
+        <div className="hero-icon">📖</div>
         <div className="hero-title">C9 考研数学修炼系统</div>
-        <div className="hero-sub">张宇30讲为主线 · 经典教辅为辅助 · 逐讲打穿</div>
+        <div className="hero-sub">当前阶段：下界筑基 · 高等数学 · 张宇30讲</div>
       </div>
 
-      {/* ── Stats ── */}
+      {/* Quick stats */}
       <div className="stats-grid">
         <div className="stat-card">
-          <div className="stat-value" style={{ color: 'var(--accent)' }}>{availableChapters.length}</div>
+          <div className="stat-value" style={{ color: 'var(--accent)' }}>{available.length}</div>
           <div className="stat-label">已录入章节</div>
         </div>
         <div className="stat-card">
@@ -32,24 +35,24 @@ export default function HomePage() {
           <div className="stat-label">总任务数</div>
         </div>
         <div className="stat-card">
-          <div className="stat-value" style={{ color: 'var(--purple)' }}>
+          <div className="stat-value" style={{ color: stats.mastery ? 'var(--accent)' : 'var(--text3)' }}>
             {stats.mastery || 0}%
           </div>
           <div className="stat-label">最近掌握度</div>
         </div>
         <div className="stat-card">
-          <div className="stat-value" style={{ color: stats.retryCount > 0 ? 'var(--red)' : 'var(--green)' }}>
-            {stats.retryCount ?? 0}
+          <div className="stat-value" style={{ color: dueRetryCount > 0 ? 'var(--red)' : 'var(--green)' }}>
+            {dueRetryCount}
           </div>
           <div className="stat-label">待清心魔</div>
         </div>
       </div>
 
-      {/* ── 继续学习 CTA ── */}
+      {/* Continue CTA */}
       {storeTitle && (
         <div className="dash-cta">
           <div className="cta-text">
-            <div className="cta-title">📖 最近：第{storeChapterId}讲 · {storeTitle}</div>
+            <div className="cta-title">继续修炼 · 第{storeChapterId}讲 {storeTitle}</div>
             <div className="cta-sub">掌握度 {stats.mastery || 0}% · {stats.doneCount || 0}/{stats.totalCount || 0} 题</div>
           </div>
           <button className="btn btn-primary" onClick={() => navigate(`/chapter/${storeChapterId}`)}>
@@ -58,42 +61,73 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* ── 科目入口 ── */}
-      <div style={{ marginBottom: 8 }}>
-        <div className="task-section-label" style={{ marginBottom: 8 }}>科目入口</div>
-        <button className="stage-node" onClick={() => navigate('/math')}
-          style={{ borderColor: 'rgba(96,165,250,0.25)' }}>
-          <div className="stage-icon" style={{ background: 'rgba(96,165,250,0.1)' }}>📐</div>
-          <div className="stage-body">
-            <div className="st-name">高等数学</div>
-            <div className="st-meta">张宇30讲 · {availableChapters.length} 讲已录入 · {totalTasks} 题</div>
-          </div>
-          <span style={{ color: 'var(--accent)', fontSize: 13 }}>→</span>
-        </button>
-        <button className="stage-node locked" disabled>
-          <div className="stage-icon">📊</div>
-          <div className="stage-body">
-            <div className="st-name">线性代数</div>
-            <div className="st-meta">敬请期待</div>
-          </div>
-        </button>
-        <button className="stage-node locked" disabled>
-          <div className="stage-icon">🎲</div>
-          <div className="stage-body">
-            <div className="st-name">概率统计</div>
-            <div className="st-meta">敬请期待</div>
-          </div>
-        </button>
+      {/* Three stages */}
+      <div className="task-section-label" style={{ marginBottom: 8 }}>修炼阶段</div>
+      <div className="stage-grid">
+        {STAGES.map(stage => {
+          const stageSubjects = SUBJECTS.filter(s => s.stageId === stage.id);
+          const stageChapters = stageSubjects.reduce((s, sub) => s + sub.chapters, 0);
+          const isActive = stage.id === 'foundation';
+          return (
+            <div
+              key={stage.id}
+              className="stage-card"
+              style={{ opacity: isActive ? 1 : 0.5, cursor: isActive ? 'pointer' : 'default' }}
+              onClick={() => isActive && navigate(`/stage/${stage.id}`)}
+            >
+              <div className="sc-icon">{stage.icon}</div>
+              <div className="sc-name">{stage.name}</div>
+              <div className="sc-desc">{stage.desc}</div>
+              <div className="sc-meta">
+                {stageChapters > 0 ? `${stageChapters} 讲已录入` : '即将开启'}
+              </div>
+            </div>
+          );
+        })}
       </div>
 
-      {/* ── 快捷操作 ── */}
+      {/* Subject entries under 下界筑基 */}
+      <div className="task-section-label" style={{ marginBottom: 8 }}>
+        下界筑基 · 学科入口
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 14 }}>
+        {SUBJECTS.filter(s => s.stageId === 'foundation').map(sub => (
+          <button
+            key={sub.id}
+            className={`stage-node-btn ${sub.locked ? 'locked' : ''}`}
+            disabled={sub.locked}
+            onClick={() => navigate(`/stage/foundation/${sub.id}`)}
+          >
+            <div className="stage-icon" style={{ background: sub.locked ? 'var(--surface3)' : 'var(--accent-soft)' }}>
+              {sub.icon}
+            </div>
+            <div className="stage-body">
+              <div className="st-name">{sub.name}</div>
+              <div className="st-meta">
+                {sub.locked ? '敬请期待' : `张宇30讲 · ${sub.chapters} 讲已录入 · ${totalTasks} 题`}
+              </div>
+            </div>
+            <span style={{ color: 'var(--text3)', fontSize: 13 }}>{sub.locked ? '🔒' : '→'}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* Due retry reminder */}
+      {dueRetryCount > 0 && (
+        <div className="dash-cta" style={{ borderColor: 'var(--red)' }}>
+          <div className="cta-text">
+            <div className="cta-title" style={{ color: 'var(--red)' }}>心魔提醒 · {dueRetryCount} 题待复习</div>
+            <div className="cta-sub">建议今日完成心魔题复习，巩固薄弱环节。</div>
+          </div>
+          <button className="btn btn-danger btn-sm" onClick={() => navigate(`/chapter/${storeChapterId || 10}/review`)}>
+            进入心魔本 →
+          </button>
+        </div>
+      )}
+
+      {/* Quick links */}
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-        <button className="btn btn-ghost btn-sm" onClick={() => navigate('/math/zhangyu30')}>
-          📘 全部章节
-        </button>
-        <button className="btn btn-ghost btn-sm" onClick={() => navigate('/import')}>
-          📥 导入章节
-        </button>
+        <button className="btn btn-ghost btn-sm" onClick={() => navigate('/import')}>📥 导入章节</button>
       </div>
     </div>
   );

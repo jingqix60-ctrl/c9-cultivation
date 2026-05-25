@@ -4,8 +4,8 @@ import { useProgressStore } from './store/useProgressStore';
 import { chapter10Data } from './data/math/zhangyu30/chapter10';
 import AppShell from './components/Layout/AppShell';
 import HomePage from './pages/HomePage';
-import MathHome from './pages/MathHome';
-import ChapterList from './pages/ChapterList';
+import StagePage from './pages/StagePage';
+import SubjectPage from './pages/SubjectPage';
 import ChapterShell from './pages/ChapterShell';
 import ImportPage from './pages/ImportPage';
 import Dashboard from './components/Dashboard/Dashboard';
@@ -18,7 +18,6 @@ import FinalReport from './components/Report/FinalReport';
 export default function App() {
   const init = useProgressStore(s => s.init);
 
-  // Preload chapter 10 data so it's always available
   useEffect(() => {
     init(10, chapter10Data);
   }, [init]);
@@ -28,8 +27,8 @@ export default function App() {
       <Routes>
         <Route element={<AppShell />}>
           <Route path="/" element={<HomePage />} />
-          <Route path="/math" element={<MathHome />} />
-          <Route path="/math/zhangyu30" element={<ChapterList />} />
+          <Route path="/stage/:stageId" element={<StagePage />} />
+          <Route path="/stage/:stageId/:subjectId" element={<SubjectPage />} />
           <Route path="/chapter/:chapterId/*" element={<ChapterShell />}>
             <Route index element={<Dashboard />} />
             <Route path="dashboard" element={<Dashboard />} />

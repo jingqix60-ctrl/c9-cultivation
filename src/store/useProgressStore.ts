@@ -26,6 +26,8 @@ interface ProgressState {
   prevTask: () => void;
   clearToast: () => void;
   resetChapter: () => void;
+  removeRetry: (taskId: number) => void;
+  resetOptions: (opts: { done?: boolean; retry?: boolean }) => void;
 }
 
 export const useProgressStore = create<ProgressState>((set, get) => ({
@@ -166,5 +168,22 @@ export const useProgressStore = create<ProgressState>((set, get) => ({
       completed: false,
       stats: calcStats(get().tasks, [], []),
     });
+  },
+
+  removeRetry: (taskId) => {
+    const { chapterId, tasks, done, retry } = get();
+    const newRetry = retry.filter(id => id !== taskId);
+    const progress: StoredProgress = { done, retry: newRetry, currentTask: taskId, completed: false };
+    saveProgress(chapterId, progress);
+    set({ retry: newRetry, stats: calcStats(tasks, done, newRetry) });
+  },
+
+  resetOptions: (opts) => {
+    const { chapterId, tasks, done, retry } = get();
+    const newDone = opts.done ? [] : done;
+    const newRetry = opts.retry ? [] : retry;
+    const progress: StoredProgress = { done: newDone, retry: newRetry, currentTask: 0, completed: false };
+    saveProgress(chapterId, progress);
+    set({ done: newDone, retry: newRetry, currentTask: 0, completed: false, stats: calcStats(tasks, newDone, newRetry) });
   },
 }));

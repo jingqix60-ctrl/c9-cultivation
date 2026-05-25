@@ -45,7 +45,10 @@ export function calcStats(tasks: Task[], done: number[], retry: number[]): Chapt
   const maxGeom = tasks.reduce((s, t) => s + t.reward.geometry, 0);
 
   const masteryPct = Math.round((totalMastery / Math.max(1, maxMastery)) * 100);
-  const realm = REALMS.findLast(r => masteryPct >= r.minMastery) ?? REALMS[0];
+  let realm = REALMS[0];
+  for (const r of REALMS) {
+    if (masteryPct >= r.minMastery) realm = r;
+  }
   const completed = done.length >= tasks.length && retry.length === 0;
 
   return {
