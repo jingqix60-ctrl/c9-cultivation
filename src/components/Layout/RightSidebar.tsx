@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useProgressStore } from '../../store/useProgressStore';
-import { importAllProgress, createProfile } from '../../utils/storage';
+import ImportModal from '../Common/ImportModal';
 
 // ── Mode A: 今日小札 (Home / Dashboard / Other) ──
 export function TodayNotes() {
@@ -78,81 +78,8 @@ export function TodayNotes() {
           </div>
         </div>
       </div>
-      {showImport && <ImportModalPlaceholder onClose={() => setShowImport(false)} />}
+      {showImport && <ImportModal onClose={() => setShowImport(false)} />}
     </>
-  );
-}
-
-// Placeholder — will be replaced by real ImportModal in Task 9
-function ImportModalPlaceholder({ onClose }: { onClose: () => void }) {
-  const importData = useProgressStore(s => s.importAllData);
-  const [error, setError] = useState<string | null>(null);
-  const [parsed, setParsed] = useState<any>(null);
-
-  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result as string;
-      const res = importData(result);
-      if (!res.success) { setError(res.error || '导入失败'); return; }
-      setParsed(res.data);
-      setError(null);
-    };
-    reader.readAsText(file);
-  };
-
-  const handleImport = (mode: 'overwrite' | 'new') => {
-    if (!parsed) return;
-    if (mode === 'overwrite') {
-      importAllProgress(parsed, useProgressStore.getState().profileId || parsed.profile.id);
-    } else {
-      const newProfile = createProfile(parsed.profile.name + ' (导入)');
-      importAllProgress(parsed, newProfile.id);
-    }
-    onClose();
-    window.location.reload();
-  };
-
-  return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-box" onClick={e => e.stopPropagation()} style={{ maxWidth: 440 }}>
-        <h3>📤 导入进度</h3>
-        {!parsed ? (
-          <>
-            <p style={{ fontSize: 12, color: 'var(--text2)' }}>选择之前导出的 JSON 进度文件。</p>
-            <input type="file" accept=".json" onChange={handleFile}
-              style={{ display: 'block', margin: '12px 0', fontSize: 12 }} />
-            {error && (
-              <div style={{ padding: '8px 12px', background: 'var(--red-soft)', color: 'var(--red)', borderRadius: 6, fontSize: 11, marginBottom: 8 }}>
-                {error}
-              </div>
-            )}
-          </>
-        ) : (
-          <>
-            <p style={{ fontSize: 12, color: 'var(--text2)', marginBottom: 8 }}>已读取进度数据：</p>
-            <div style={{ fontSize: 11, color: 'var(--text2)', padding: '8px 12px', background: 'var(--surface2)', borderRadius: 6, marginBottom: 10 }}>
-              <div>学习者：{parsed.profile.name}</div>
-              <div>导出时间：{parsed.exportedAt.slice(0, 10)}</div>
-              <div>包含 {Object.keys(parsed.chapters).length} 个章节</div>
-            </div>
-            <p style={{ fontSize: 12, color: 'var(--text2)', marginBottom: 8 }}>选择导入方式：</p>
-            <div className="modal-actions" style={{ flexDirection: 'column', gap: 6 }}>
-              <button className="btn btn-primary btn-sm" style={{ width: '100%' }}
-                onClick={() => handleImport('overwrite')}>覆盖当前学习者进度</button>
-              <button className="btn btn-ghost btn-sm" style={{ width: '100%' }}
-                onClick={() => handleImport('new')}>新建学习者并导入</button>
-              <button className="btn btn-ghost btn-sm" style={{ width: '100%' }} onClick={onClose}>取消</button>
-            </div>
-          </>
-        )}
-        <div className="modal-actions" style={{ marginTop: 12 }}>
-          <button className="btn btn-ghost btn-sm" onClick={onClose}>关闭</button>
-        </div>
-      </div>
-    </div>
   );
 }
 
