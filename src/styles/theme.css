@@ -255,11 +255,14 @@ a:hover { text-decoration: underline; }
 .qnav-num.current { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); font-weight: 700; }
 .qnav-num.pending { color: var(--text3); }
 .qnav-toggle {
-  position: fixed; right: 8px; bottom: 100px; z-index: 199;
-  width: 40px; height: 40px; border-radius: 50%; background: var(--surface);
-  border: 1px solid var(--border); font-size: 18px; cursor: pointer;
-  box-shadow: var(--shadow); display: flex; align-items: center; justify-content: center;
+  position: fixed; right: 12px; bottom: 120px; z-index: 250;
+  width: auto; height: auto; padding: 8px 14px; border-radius: 20px;
+  background: var(--surface); border: 1.5px solid var(--accent);
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 4px;
+  color: var(--accent); font-family: var(--font-body);
 }
+.qnav-toggle:hover { background: var(--accent-soft); }
 
 /* ═══════════ STAGE CARDS ═══════════ */
 .stage-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 16px; }
