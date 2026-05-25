@@ -1,7 +1,7 @@
 import { create } from 'zustand';
-import type { Task, ChapterData } from '../data/types';
-import { loadProgress, saveProgress, ensureProfile, exportAllProgress, validateImportData, type StoredProgress } from '../utils/storage';
-import { calcStats, getNextTask, calcReviewSchedule, type ChapterStats } from '../utils/progress';
+import type { Task, ChapterData, ChapterModule } from '../data/types';
+import { loadProgress, saveProgress, ensureProfile, exportAllProgress, validateImportData, type StoredProgress, type ExportedProgress } from '../utils/storage';
+import { calcStats, getNextTask, calcReviewSchedule, type ChapterStats, type ReviewSchedule } from '../utils/progress';
 
 interface ProgressState {
   chapterId: number;
@@ -30,9 +30,9 @@ interface ProgressState {
   removeRetry: (taskId: number) => void;
   resetOptions: (opts: { done?: boolean; retry?: boolean }) => void;
   exportAllData: () => { json: string; filename: string };
-  importAllData: (json: string) => { success: boolean; error?: string };
-  getReviewSchedule: () => { nextReviewDate: string; intervalDays: number; reviewCount: number };
-  chapterModules: import('../data/types').ChapterModule[];
+  importAllData: (json: string) => { success: boolean; error?: string; data?: ExportedProgress };
+  getReviewSchedule: () => ReviewSchedule;
+  chapterModules: ChapterModule[];
 }
 
 export const useProgressStore = create<ProgressState>((set, get) => ({
@@ -74,7 +74,7 @@ export const useProgressStore = create<ProgressState>((set, get) => ({
       currentTask: current >= 0 ? current : 0,
       completed: saved.completed || (saved.done.length >= tasks.length && saved.retry.length === 0),
       stats,
-      chapterModules: (data as any).modules || [],
+      chapterModules: data.modules || [],
     });
   },
 
@@ -218,7 +218,7 @@ export const useProgressStore = create<ProgressState>((set, get) => ({
       if (!validateImportData(data)) {
         return { success: false, error: 'JSON 格式不正确：缺少必要字段 (version, profile, chapters)' };
       }
-      return { success: true };
+      return { success: true, data };
     } catch (e) {
       return { success: false, error: `JSON 解析失败：${(e as Error).message}` };
     }

@@ -155,10 +155,18 @@ export function exportAllProgress(): ExportedProgress {
 export function validateImportData(data: unknown): data is ExportedProgress {
   if (!data || typeof data !== 'object') return false;
   const d = data as Record<string, unknown>;
-  return typeof d.version === 'number'
-    && typeof d.exportedAt === 'string'
-    && d.profile != null && typeof (d.profile as Record<string,unknown>).id === 'string'
-    && d.chapters != null && typeof d.chapters === 'object';
+  if (typeof d.version !== 'number') return false;
+  if (typeof d.exportedAt !== 'string') return false;
+  if (!d.profile || typeof (d.profile as Record<string,unknown>).id !== 'string') return false;
+  if (!d.chapters || typeof d.chapters !== 'object') return false;
+  // Validate at least one chapter has required fields
+  const chapters = d.chapters as Record<string, Record<string, unknown>>;
+  const entries = Object.values(chapters);
+  if (entries.length > 0) {
+    const first = entries[0];
+    if (typeof first.chapterId !== 'number' || !Array.isArray(first.done) || !Array.isArray(first.retry)) return false;
+  }
+  return true;
 }
 
 export function importAllProgress(data: ExportedProgress, targetProfileId: string): void {
