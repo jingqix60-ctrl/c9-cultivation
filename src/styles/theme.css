@@ -442,6 +442,79 @@ body {
   background-size: 100% 24px;
 }
 
+/* ═══════════ ANSWER BLOCKS (card style) ═══════════ */
+.answer-block {
+  margin: 12px 0;
+  padding: 16px;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  font-size: 14px;
+  line-height: 1.9;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  max-width: 100%;
+}
+.answer-block-label {
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  letter-spacing: 0.03em;
+}
+.answer-block-answer {
+  background: rgba(79,125,90,0.04);
+  border-left: 3px solid var(--green);
+}
+.answer-block-answer .answer-block-label { color: var(--green); }
+.answer-block-method {
+  background: var(--accent-soft);
+  border-left: 3px solid var(--accent);
+}
+.answer-block-method .answer-block-label { color: var(--accent); }
+.answer-block-trap {
+  background: var(--red-soft);
+  border-left: 3px solid var(--red);
+}
+.answer-block-trap .answer-block-label { color: var(--red); }
+.answer-block-mastery {
+  background: var(--gold-soft);
+  border-left: 3px solid var(--gold);
+}
+.answer-block-mastery .answer-block-label { color: var(--gold); }
+
+.answer-sub-block {
+  padding: 10px 12px;
+  background: rgba(79,125,90,0.03);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(79,125,90,0.08);
+}
+
+/* ═══════════ MARKDOWN CONTENT ═══════════ */
+.md-content strong {
+  font-weight: 700;
+  color: var(--text);
+}
+.md-content em {
+  font-style: italic;
+}
+.md-content p {
+  margin-bottom: 8px;
+}
+.md-content p:last-child {
+  margin-bottom: 0;
+}
+.md-content ul,
+.md-content ol {
+  padding-left: 1.5em;
+  margin: 6px 0 10px;
+}
+.md-content li {
+  margin-bottom: 4px;
+}
+.md-content br + br {
+  display: block;
+  content: "";
+  margin-top: 6px;
+}
+
 /* ═══════════ KP GRID ═══════════ */
 .kp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 6px; margin-bottom: 12px; }
 .kp-tag {

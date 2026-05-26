@@ -5,18 +5,20 @@ import HintPanel from './HintPanel';
 import AnswerPanel from './AnswerPanel';
 import LatexContent from './LatexContent';
 function splitSubQuestions(text: string): string[] {
-  const markers = text.match(/(?:^|\n)\s*(?:\(\d+\)|\d+[\.\)]|[①②③④⑤⑥⑦⑧⑨⑩]|\*\*题\s*\d+\*\*)/g);
-  if (!markers || markers.length <= 1) return [text];
+  const lines = text.split('\n');
   const parts: string[] = [];
-  let lastIdx = 0;
-  for (let i = 0; i < markers.length; i++) {
-    const m = markers[i];
-    const idx = text.indexOf(m, lastIdx);
-    if (idx < 0) continue;
-    const nextIdx = i + 1 < markers.length ? text.indexOf(markers[i + 1], idx + m.length) : text.length;
-    if (nextIdx < 0) continue;
-    parts.push(text.slice(idx, nextIdx).trim());
-    lastIdx = nextIdx;
+  let current: string[] = [];
+
+  for (const line of lines) {
+    const isMarker = /^\s*(?:\(\d+\)|\(\w\)|\d+[\.\)]|[①②③④⑤⑥⑦⑧⑨⑩]|\*\*题\s*\d+\*\*)/.test(line);
+    if (isMarker && current.length > 0) {
+      parts.push(current.join('\n').trim());
+      current = [];
+    }
+    current.push(line);
+  }
+  if (current.length > 0) {
+    parts.push(current.join('\n').trim());
   }
   return parts.length > 1 ? parts : [text];
 }
@@ -116,17 +118,22 @@ export default function TaskPage() {
 
           <div className="task-section">
             <div className="task-section-label">题目</div>
-            {subQuestions.length > 1 ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                {subQuestions.map((sq, i) => (
-                  <div key={i} style={{ padding: i > 0 ? '12px 0 0' : 0, borderTop: i > 0 ? '1px solid var(--border)' : 'none' }}>
-                    <LatexContent html={sq} />
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="task-body"><LatexContent html={task.question} /></div>
-            )}
+            <div className="task-body md-content">
+              {subQuestions.length > 1 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  {subQuestions.map((sq, i) => (
+                    <div key={i} style={{
+                      padding: i > 0 ? '14px 0 0' : 0,
+                      borderTop: i > 0 ? '1px solid var(--border)' : 'none'
+                    }}>
+                      <LatexContent html={sq} />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <LatexContent html={task.question} />
+              )}
+            </div>
           </div>
 
           <div style={{ fontSize: 10, color: 'var(--text3)', marginBottom: 6, display: 'flex', gap: 10 }}>
