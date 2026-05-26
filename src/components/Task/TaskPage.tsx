@@ -136,6 +136,11 @@ export default function TaskPage() {
             </div>
           </div>
 
+          <div style={{ fontSize: 11, color: 'var(--text2)', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 4 }}>
+            <span>📖</span>
+            <span>{task.source}</span>
+          </div>
+
           <div style={{ fontSize: 10, color: 'var(--text3)', marginBottom: 6, display: 'flex', gap: 10 }}>
             <span>🎁 掌握度 +{task.reward.mastery}%</span>
             {task.reward.c9 > 0 && <span>⚡ C9 +{task.reward.c9}</span>}
