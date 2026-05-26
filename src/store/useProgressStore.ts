@@ -52,7 +52,13 @@ export const useProgressStore = create<ProgressState>((set, get) => ({
   init: (chapterId, data) => {
     const profile = ensureProfile();
     const tasks = data.tasks;
-    const saved = loadProgress(profile.id, chapterId);
+    let saved = loadProgress(profile.id, chapterId);
+    // Auto-clear stale progress (old task IDs no longer exist)
+    const staleDone = saved.done.some(id => id >= tasks.length);
+    const staleRetry = saved.retry.some(id => id >= tasks.length);
+    if (staleDone || staleRetry) {
+      saved = { done: [], retry: [], currentTask: 0, completed: false };
+    }
     const state = get();
     if (state.chapterId === chapterId && state.tasks.length === tasks.length && state.profileId === profile.id) return;
 

@@ -10,7 +10,7 @@ const ZHANGYU30_CHAPTERS: ChapterEntry[] = [
   { chapterId: 7,  chapterNumber: 7,  chapterTitle: '微分方程',           book: '张宇30讲', description: '', taskCount: 0, difficulty: 3, status: 'not_imported' },
   { chapterId: 8,  chapterNumber: 8,  chapterTitle: '多元函数微分学',      book: '张宇30讲', description: '', taskCount: 0, difficulty: 3, status: 'not_imported' },
   { chapterId: 9,  chapterNumber: 9,  chapterTitle: '二重积分',           book: '张宇30讲', description: '', taskCount: 0, difficulty: 3, status: 'not_imported' },
-  { chapterId: 10, chapterNumber: 10, chapterTitle: '旋转体体积',          book: '张宇30讲', description: '垫片法、柱壳法、非坐标轴旋转、平行截面、反常积分型体积、微分方程+体积综合', taskCount: 32, difficulty: 3, status: 'available' },
+  { chapterId: 10, chapterNumber: 10, chapterTitle: '旋转体体积与平面面积', book: '张宇30讲', description: '平面面积、旋转体体积、函数平均值——圆盘法、柱壳法、反常积分、综合应用', taskCount: 28, difficulty: 3, status: 'available' },
   { chapterId: 11, chapterNumber: 11, chapterTitle: '常微分方程',          book: '张宇30讲', description: '', taskCount: 0, difficulty: 3, status: 'not_imported' },
   { chapterId: 12, chapterNumber: 12, chapterTitle: '无穷级数',           book: '张宇30讲', description: '', taskCount: 0, difficulty: 4, status: 'not_imported' },
   { chapterId: 13, chapterNumber: 13, chapterTitle: '向量代数与空间解析几何', book: '张宇30讲', description: '', taskCount: 0, difficulty: 2, status: 'not_imported' },
