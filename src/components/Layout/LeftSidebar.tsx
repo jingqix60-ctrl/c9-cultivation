@@ -2,6 +2,15 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useProgressStore } from '../../store/useProgressStore';
 import type { ChapterModule } from '../../data/types';
 
+const STAGE_MAP: Record<string, string> = { foundation: '下界筑基', spirit: '灵域试炼', heaven: '天庭问道' };
+const SUBJECT_MAP: Record<string, string> = { math: '高等数学', linear: '线性代数', probability: '概率论与数理统计' };
+
+interface PathSegment {
+  label: string;
+  to: string;
+  isLast: boolean;
+}
+
 export default function LeftSidebar({ onCollapse }: { onCollapse?: () => void }) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -12,19 +21,20 @@ export default function LeftSidebar({ onCollapse }: { onCollapse?: () => void })
   const retry = useProgressStore(s => s.retry);
   const chapterModules = useProgressStore(s => s.chapterModules);
   const currentTask = useProgressStore(s => s.currentTask);
+  const currentStageId = useProgressStore(s => s.currentStageId);
+  const currentSubjectId = useProgressStore(s => s.currentSubjectId);
   const inChapter = location.pathname.includes('/chapter/') && chapterTitle;
 
-  // Derive modules: prefer chapterModules from store, else auto-extract from stageName
+  // Derive modules
   const modules = chapterModules.length > 0
     ? chapterModules
     : deriveModulesFromTasks(tasks);
 
-  // Compute stats per module
+  // Module stats
   const moduleStats = new Map<string, { total: number; done: number; retry: number }>();
   for (const m of modules) {
     moduleStats.set(m.id, { total: 0, done: 0, retry: 0 });
   }
-  // Also add a catch-all for unmatched
   moduleStats.set('__unmatched', { total: 0, done: 0, retry: 0 });
 
   for (const t of tasks) {
@@ -44,27 +54,49 @@ export default function LeftSidebar({ onCollapse }: { onCollapse?: () => void })
     const allTasks = useProgressStore.getState().tasks;
     const first = allTasks.find(t => ((t as any).moduleId || t.stageName) === moduleId);
     if (!first) return;
-    if (location.pathname.includes('/task')) {
-      navigate(`/chapter/${chapterId}/task/${first.id}`);
-    } else {
-      navigate(`/chapter/${chapterId}/task/${first.id}`);
-    }
+    navigate(`/chapter/${chapterId}/task/${first.id}`);
   };
 
-  // Cultivation path segments
-  const pathSegments = [
-    { label: '下界筑基', active: true },
-    { label: '高等数学', active: true },
-    { label: '张宇30讲', active: true },
-  ];
-  if (inChapter) {
-    pathSegments.push({ label: `第${chapterId}讲：${chapterTitle}`, active: true });
+  // ── Build path segments from context ──
+  const p = location.pathname;
+  const isHome = p === '/' || p === '';
+  const isChapterPage = inChapter;
+
+  // 判断当前页面类型（从 URL 判断精简版）
+  const isStagePage = currentStageId !== '' && currentSubjectId === '' && !isChapterPage;
+  const isSubjectPage = currentStageId !== '' && currentSubjectId !== '' && !isChapterPage;
+
+  // 构建路径段
+  const pathSegments: PathSegment[] = [];
+
+  // 首页（始终显示）
+  pathSegments.push({ label: '首页', to: '/', isLast: isHome });
+
+  // 阶段
+  if (currentStageId) {
+    const label = STAGE_MAP[currentStageId] || currentStageId;
+    pathSegments.push({ label, to: `/stage/${currentStageId}`, isLast: isStagePage });
+  }
+
+  // 学科
+  if (currentSubjectId) {
+    const label = SUBJECT_MAP[currentSubjectId] || currentSubjectId;
+    pathSegments.push({ label, to: `/stage/${currentStageId}/subject/${currentSubjectId}`, isLast: isSubjectPage });
+  }
+
+  // 章节
+  if (isChapterPage) {
+    pathSegments.push({
+      label: `第${chapterId}讲：${chapterTitle}`,
+      to: `/chapter/${chapterId}/task`,
+      isLast: true,
+    });
   }
 
   return (
     <div className="sidebar-left">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-        <span style={{ fontWeight: 700, fontSize: 11, color: 'var(--accent)', fontFamily: 'var(--font-title)' }}>
+        <span style={{ fontWeight: 600, fontSize: 11, color: 'var(--accent)', fontFamily: 'var(--font-title)', letterSpacing: '0.04em' }}>
           📖 修炼路径
         </span>
         {onCollapse && (
@@ -72,14 +104,19 @@ export default function LeftSidebar({ onCollapse }: { onCollapse?: () => void })
         )}
       </div>
 
-      {/* Cultivation Path */}
+      {/* 路径导航（可点击） */}
       <div style={{ marginBottom: 14 }}>
         {pathSegments.map((seg, i) => (
           <div key={i} style={{
             padding: '3px 0', fontSize: 11, lineHeight: 1.6,
-            color: seg.active ? 'var(--accent)' : 'var(--text3)',
-            fontWeight: seg.active ? 600 : 400,
-          }}>
+            color: seg.isLast ? 'var(--accent)' : 'var(--text2)',
+            fontWeight: seg.isLast ? 600 : 400,
+            cursor: 'pointer',
+            transition: 'color 0.12s',
+          }}
+            onClick={() => navigate(seg.to)}
+            onMouseEnter={e => { if (!seg.isLast) e.currentTarget.style.color = 'var(--accent)'; }}
+            onMouseLeave={e => { if (!seg.isLast) e.currentTarget.style.color = 'var(--text2)'; }}>
             {i > 0 && <span style={{ marginRight: 4, color: 'var(--text3)', fontSize: 9 }}>└</span>}
             {seg.label}
           </div>
@@ -132,6 +169,51 @@ export default function LeftSidebar({ onCollapse }: { onCollapse?: () => void })
           })}
         </div>
       )}
+
+      {/* 能力面板（做题时显示） */}
+      {inChapter && tasks.length > 0 && (() => {
+        const kpMap = new Map<string, { total: number; done: number; hasRetry: boolean }>();
+        tasks.forEach(t => {
+          for (const kp of t.knowledgePoints) {
+            if (!kpMap.has(kp)) kpMap.set(kp, { total: 0, done: 0, hasRetry: false });
+            const entry = kpMap.get(kp)!;
+            entry.total++;
+            if (done.includes(t.id)) entry.done++;
+            if (retry.includes(t.id)) entry.hasRetry = true;
+          }
+        });
+        const items = Array.from(kpMap.entries())
+          .map(([name, v]) => ({ name, ...v, pct: Math.round((v.done / Math.max(1, v.total)) * 100) }))
+          .sort((a, b) => a.pct - b.pct || b.total - a.total);
+
+        if (items.length === 0) return null;
+
+        return (
+          <div style={{ marginTop: 10, borderTop: '1px solid var(--border)', paddingTop: 8 }}>
+            <div style={{ fontWeight: 600, fontSize: 10, color: 'var(--purple)', marginBottom: 6, fontFamily: 'var(--font-title)' }}>
+              📋 能力面板
+            </div>
+            {items.map(item => (
+              <div key={item.name} style={{ marginBottom: 6 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9, marginBottom: 2 }}>
+                  <span style={{ color: 'var(--text2)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {item.name}{item.hasRetry && <span style={{ color: 'var(--red)', marginLeft: 2 }}>🔄</span>}
+                  </span>
+                  <span style={{ color: 'var(--text3)', flexShrink: 0, marginLeft: 4 }}>
+                    {item.done}/{item.total}
+                  </span>
+                </div>
+                <div className="progress-bar" style={{ height: 3 }}>
+                  <div className="progress-fill" style={{
+                    width: item.pct + '%',
+                    background: item.pct >= 100 ? 'var(--green)' : item.pct >= 50 ? 'var(--amber)' : 'var(--text3)',
+                  }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        );
+      })()}
     </div>
   );
 }

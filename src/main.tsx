@@ -1,6 +1,5 @@
 import { StrictMode, Component } from 'react';
 import { createRoot } from 'react-dom/client';
-import 'katex/dist/katex.min.css';
 import './styles/theme.css';
 import App from './App';
 
@@ -31,6 +30,14 @@ class ErrorBoundary extends Component<{ children: React.ReactNode }, { error: Er
     return this.props.children;
   }
 }
+
+// 禁止 Ctrl+滚轮 和 Ctrl+± 缩放页面
+document.addEventListener('wheel', e => { if (e.ctrlKey) e.preventDefault(); }, { passive: false });
+document.addEventListener('keydown', e => {
+  if (e.ctrlKey && (e.key === '=' || e.key === '-' || e.key === '0' || e.key === '加' || e.key === '减')) {
+    e.preventDefault();
+  }
+});
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

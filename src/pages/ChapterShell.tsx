@@ -4,12 +4,16 @@ import { useProgressStore } from '../store/useProgressStore';
 import { getChapterData } from '../utils/chapterLoader';
 
 export default function ChapterShell() {
-  const { chapterId } = useParams<{ chapterId: string }>();
+  const { chapterId: chapterIdParam, stageId, subjectId } = useParams<{
+    chapterId: string;
+    stageId?: string;
+    subjectId?: string;
+  }>();
   const navigate = useNavigate();
   const init = useProgressStore(s => s.init);
   const storeChapterId = useProgressStore(s => s.chapterId);
 
-  const cid = parseInt(chapterId ?? '10');
+  const cid = parseInt(chapterIdParam ?? '10');
 
   useEffect(() => {
     if (isNaN(cid)) {
@@ -18,7 +22,12 @@ export default function ChapterShell() {
     }
     const data = getChapterData(cid);
     if (!data) {
-      navigate('/math/zhangyu30', { replace: true });
+      // 旧路由 fallback
+      if (stageId && subjectId) {
+        navigate(`/stage/${stageId}/subject/${subjectId}`, { replace: true });
+      } else {
+        navigate('/', { replace: true });
+      }
       return;
     }
     init(cid, data);

@@ -17,8 +17,13 @@ interface ProgressState {
 
   // Data
   chapterTitle: string;
+  /** 当前所在阶段（从页面导航设置，供左侧栏使用） */
+  currentStageId: string;
+  /** 当前所在学科 */
+  currentSubjectId: string;
 
   // Actions
+  setStageContext: (stageId: string, subjectId?: string) => void;
   init: (chapterId: number, data: ChapterData) => void;
   markDone: () => void;
   markRetry: () => void;
@@ -46,8 +51,17 @@ export const useProgressStore = create<ProgressState>((set, get) => ({
   toastMessage: null,
   toastType: 'gr' as const,
   chapterTitle: '',
+  currentStageId: '',
+  currentSubjectId: '',
   profileId: '',
   chapterModules: [],
+
+  setStageContext: (stageId, subjectId) => {
+    set({
+      currentStageId: stageId,
+      currentSubjectId: subjectId || '',
+    });
+  },
 
   init: (chapterId, data) => {
     const profile = ensureProfile();

@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: transparent;
+  overflow: hidden;
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  cursor: grab;
+}
+body:active { cursor: grabbing; }
+#canvas {
+  position: absolute;
+  top: 0; left: 0;
+  cursor: grab;
+}
+#canvas:active { cursor: grabbing; }
+/* 信息面板 */
+#info {
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,253,247,0.85);
+  border: 1px solid rgba(139,94,52,0.12);
+  border-radius: 10px;
+  padding: 3px 10px;
+  font-size: 9px;
+  color: #7A6F63;
+  font-family: 'Segoe UI', 'PingFang SC', sans-serif;
+  pointer-events: none;
+  white-space: nowrap;
+}
+#xp-bar {
+  width: 60px;
+  height: 4px;
+  background: rgba(94,77,56,0.1);
+  border-radius: 2px;
+  overflow: hidden;
+}
+#xp-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: #8B5E34;
+  transition: width 0.5s;
+}
+#level-name {
+  font-weight: 600;
+  color: #8B5E34;
+}
+#bubble {
+  position: absolute;
+  display: none;
+  background: rgba(255,253,247,0.95);
+  border: 1px solid rgba(139,94,52,0.15);
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-size: 11px;
+  color: #2F2A24;
+  font-family: 'Segoe UI', 'PingFang SC', sans-serif;
+  line-height: 1.4;
+  max-width: 150px;
+  pointer-events: none;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  z-index: 10;
+}
+#evo-flash {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 5;
+  display: none;
+}
+</style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<div id="bubble"></div>
+<div id="info">
+  <span id="level-name">灵蛋</span>
+  <span>·</span>
+  <span id="xp-text">0/100</span>
+  <div id="xp-bar"><div id="xp-fill" style="width:0%"></div></div>
+</div>
+<div id="evo-flash"></div>
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const bubble = document.getElementById('bubble');
+const levelName = document.getElementById('level-name');
+const xpText = document.getElementById('xp-text');
+const xpFill = document.getElementById('xp-fill');
+const evoFlash = document.getElementById('evo-flash');
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+// ═══════ 进化系统 ═══════
+const EVO_STAGES = [
+  { name: '灵蛋',   xpNeeded: 0,   size: 18, color: '#C9B8A0', eyeSize: 4, hornLen: 0,  hasWings: false, hasTail: false, glow: 'rgba(201,184,160,0.15)' },
+  { name: '幼兽',   xpNeeded: 30,  size: 22, color: '#A8C4A0', eyeSize: 5, hornLen: 4,  hasWings: false, hasTail: true,  glow: 'rgba(168,196,160,0.15)' },
+  { name: '成长兽', xpNeeded: 80,  size: 26, color: '#7CB08C', eyeSize: 5, hornLen: 7,  hasWings: true,  hasTail: true,  glow: 'rgba(124,176,140,0.18)' },
+  { name: '进化兽', xpNeeded: 180, size: 30, color: '#5E8F7A', eyeSize: 6, hornLen: 10, hasWings: true,  hasTail: true,  glow: 'rgba(94,143,122,0.25)' },
+  { name: '灵兽',   xpNeeded: 300, size: 34, color: '#4A7A6A', eyeSize: 6, hornLen: 12, hasWings: true,  hasTail: true,  glow: 'rgba(74,122,106,0.3)' },
+];
+
+// ═══════ 角色状态 ═══════
+const pet = {
+  x: 150, y: 180,
+  vx: 0,
+  facing: 1,
+  state: 'idle',
+  stateTimer: 0,
+  xp: 0,
+  stage: 0,
+  bobPhase: 0,
+  walkPhase: 0,
+};
+
+function getStage(xp) {
+  let s = 0;
+  for (let i = EVO_STAGES.length - 1; i >= 0; i--) {
+    if (xp >= EVO_STAGES[i].xpNeeded) { s = i; break; }
+  }
+  return s;
+}
+
+function getStageProgress(xp) {
+  const cur = EVO_STAGES[pet.stage];
+  const next = EVO_STAGES[pet.stage + 1];
+  if (!next) return 100;
+  return Math.min(100, Math.round(((xp - cur.xpNeeded) / (next.xpNeeded - cur.xpNeeded)) * 100));
+}
+
+function setXP(xp) {
+  const oldStage = pet.stage;
+  pet.xp = xp;
+  pet.stage = getStage(xp);
+  
+  // 更新 UI
+  const stage = EVO_STAGES[pet.stage];
+  levelName.textContent = stage.name;
+  const nextStage = EVO_STAGES[pet.stage + 1];
+  if (nextStage) {
+    const progress = getStageProgress(xp);
+    xpText.textContent = `${xp}/${nextStage.xpNeeded}`;
+    xpFill.style.width = progress + '%';
+  } else {
+    xpText.textContent = `${xp} · 已至臻境`;
+    xpFill.style.width = '100%';
+  }
+  xpFill.style.background = pet.stage >= 4 ? '#C49A6C' : pet.stage >= 2 ? '#4F7D5A' : '#8B5E34';
+
+  // 进化动画
+  if (pet.stage > oldStage) {
+    triggerEvolution();
+  }
+}
+
+function triggerEvolution() {
+  const flash = evoFlash;
+  flash.style.display = 'block';
+  flash.style.background = 'rgba(255,253,247,0.6)';
+  flash.style.transition = 'all 0.01s';
+  
+  let pulses = 0;
+  const pulse = () => {
+    pulses++;
+    flash.style.background = pulses % 2 === 0 
+      ? 'rgba(255,253,247,0.6)' 
+      : 'rgba(139,94,52,0.15)';
+    if (pulses < 6) setTimeout(pulse, 200);
+    else {
+      flash.style.display = 'none';
+      showBubble(`✨ 破镜！进化至「${EVO_STAGES[pet.stage].name}」`);
+    }
+  };
+  pulse();
+}
+
+// ═══════ 绘制怪兽 ═══════
+function drawMonster(offsetY = 0) {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  const stage = EVO_STAGES[pet.stage];
+  const cx = Math.round(pet.x);
+  const cy = Math.round(pet.y + offsetY);
+  const s = stage.size;
+  const dir = pet.facing;
+
+  // ── 光晕 ──
+  const grad = ctx.createRadialGradient(cx, cy, s * 0.3, cx, cy, s * 1.8);
+  grad.addColorStop(0, stage.glow);
+  grad.addColorStop(1, 'transparent');
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.arc(cx, cy, s * 1.8, 0, Math.PI * 2);
+  ctx.fill();
+
+  // ── 尾巴 ──
+  if (stage.hasTail) {
+    ctx.fillStyle = stage.color;
+    ctx.strokeStyle = stage.color;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    const tailX = cx - dir * s * 0.7;
+    const tailY = cy + s * 0.2;
+    const tailWag = Math.sin(Date.now() / 300) * 4;
+    ctx.moveTo(tailX, tailY);
+    ctx.quadraticCurveTo(tailX - dir * 12, tailY - 8 + tailWag, tailX - dir * 16, tailY - 4 + tailWag);
+    ctx.stroke();
+    // 尾巴尖
+    ctx.beginPath();
+    ctx.arc(tailX - dir * 16, tailY - 4 + tailWag, 3, 0, Math.PI * 2);
+    ctx.fillStyle = stage.color;
+    ctx.fill();
+  }
+
+  // ── 翅膀 ──
+  if (stage.hasWings) {
+    const wingFlap = Math.sin(Date.now() / 200) * 3;
+    ctx.fillStyle = 'rgba(94,143,122,0.3)';
+    // 左翅
+    ctx.beginPath();
+    ctx.ellipse(cx - s * 0.6, cy - s * 0.2 + wingFlap, s * 0.5, s * 0.3, -0.3, 0, Math.PI * 2);
+    ctx.fill();
+    // 右翅
+    ctx.beginPath();
+    ctx.ellipse(cx + s * 0.6, cy - s * 0.2 + wingFlap, s * 0.5, s * 0.3, 0.3, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // ── 身体（主圆） ──
+  ctx.fillStyle = stage.color;
+  ctx.beginPath();
+  ctx.arc(cx, cy, s, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  // ── 肚子（浅色区域） ──
+  ctx.fillStyle = 'rgba(255,255,255,0.25)';
+  ctx.beginPath();
+  ctx.ellipse(cx, cy + s * 0.15, s * 0.5, s * 0.45, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // ── 角 ──
+  if (stage.hornLen > 0) {
+    ctx.fillStyle = '#5C4A3A';
+    // 左角
+    ctx.beginPath();
+    ctx.moveTo(cx - s * 0.3, cy - s * 0.7);
+    ctx.lineTo(cx - s * 0.2 - 2, cy - s * 0.7 - stage.hornLen);
+    ctx.lineTo(cx - s * 0.1, cy - s * 0.7);
+    ctx.fill();
+    // 右角
+    ctx.beginPath();
+    ctx.moveTo(cx + s * 0.3, cy - s * 0.7);
+    ctx.lineTo(cx + s * 0.2 + 2, cy - s * 0.7 - stage.hornLen);
+    ctx.lineTo(cx + s * 0.1, cy - s * 0.7);
+    ctx.fill();
+  }
+
+  // ── 眼睛 ──
+  // 眼白
+  ctx.fillStyle = '#FFFDF7';
+  ctx.beginPath();
+  ctx.ellipse(cx - s * 0.3, cy - s * 0.15, stage.eyeSize, stage.eyeSize * 1.2, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.ellipse(cx + s * 0.3, cy - s * 0.15, stage.eyeSize, stage.eyeSize * 1.2, 0, 0, Math.PI * 2);
+  ctx.fill();
+  // 瞳孔（看向 facing 方向）
+  const pupilOff = dir * 1.5;
+  ctx.fillStyle = '#2F2A24';
+  ctx.beginPath();
+  ctx.arc(cx - s * 0.3 + pupilOff, cy - s * 0.1, stage.eyeSize * 0.55, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(cx + s * 0.3 + pupilOff, cy - s * 0.1, stage.eyeSize * 0.55, 0, Math.PI * 2);
+  ctx.fill();
+  // 高光
+  ctx.fillStyle = '#FFF';
+  ctx.beginPath();
+  ctx.arc(cx - s * 0.3 + pupilOff + 1.5, cy - s * 0.1 - 1.5, stage.eyeSize * 0.25, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(cx + s * 0.3 + pupilOff + 1.5, cy - s * 0.1 - 1.5, stage.eyeSize * 0.25, 0, Math.PI * 2);
+  ctx.fill();
+
+  // ── 嘴巴 ──
+  ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.arc(cx, cy + s * 0.25, s * 0.2, 0.1, Math.PI - 0.1);
+  ctx.stroke();
+
+  // ── 脚 ──
+  const footBob = pet.state === 'walk' ? Math.sin(Date.now() / 120) * 2 : 0;
+  ctx.fillStyle = 'rgba(0,0,0,0.1)';
+  ctx.beginPath();
+  ctx.ellipse(cx - s * 0.35, cy + s + 3 - Math.abs(footBob), 5, 3, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.ellipse(cx + s * 0.35, cy + s + 3 + Math.abs(footBob), 5, 3, 0, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+// ═══════ 动画循环 ═══════
+let bobOffset = 0;
+let bobDir = 1;
+
+function update() {
+  pet.bobPhase += 0.03;
+  pet.stateTimer--;
+
+  // 状态切换
+  if (pet.stateTimer <= 0) {
+    if (pet.state === 'idle') {
+      pet.state = 'walk';
+      pet.vx = (Math.random() > 0.5 ? 1 : -1) * (0.3 + Math.random() * 0.4);
+      pet.facing = pet.vx > 0 ? 1 : -1;
+      pet.stateTimer = 40 + Math.random() * 100;
+    } else {
+      pet.state = 'idle';
+      pet.vx = 0;
+      pet.stateTimer = 30 + Math.random() * 80;
+      const msgs = [
+        '📖 继续修炼…', '💪 加油！', '🧘 静心', '📐 做题',
+        '✨ 专注', '⚔️ 渡劫', '🌱 每日精进',
+      ];
+      showBubble(msgs[Math.floor(Math.random() * msgs.length)]);
+    }
+  }
+
+  // 移动
+  if (pet.state === 'walk') {
+    pet.x += pet.vx;
+    pet.walkPhase += 0.05;
+    if (pet.x < 20) { pet.x = 20; pet.vx = Math.abs(pet.vx); pet.facing = 1; }
+    if (pet.x > canvas.width - 50) { pet.x = canvas.width - 50; pet.vx = -Math.abs(pet.vx); pet.facing = -1; }
+  }
+
+  // 浮动
+  bobOffset = Math.sin(pet.bobPhase) * 1.5;
+  if (pet.state === 'walk') bobOffset += Math.sin(Date.now() / 100) * 1;
+
+  drawMonster(bobOffset);
+
+  // 气泡位置
+  const stage = EVO_STAGES[pet.stage];
+  if (pet.bubble) {
+    bubble.style.left = (pet.x - 75 + stage.size / 2) + 'px';
+    bubble.style.top = (pet.y - stage.size - 40) + 'px';
+  }
+
+  requestAnimationFrame(update);
+}
+
+// ═══════ 对话框 ═══════
+function showBubble(msg) {
+  pet.bubble = msg;
+  bubble.textContent = msg;
+  bubble.style.display = 'block';
+  clearTimeout(pet.bubbleTimer);
+  pet.bubbleTimer = setTimeout(() => {
+    bubble.style.display = 'none';
+    pet.bubble = '';
+  }, 2500);
+}
+
+// ═══════ 点击交互 ═══════
+canvas.addEventListener('click', (e) => {
+  const stage = EVO_STAGES[pet.stage];
+  const dist = Math.hypot(e.offsetX - pet.x, e.offsetY - pet.y);
+  if (dist < stage.size + 10) {
+    const reacts = [
+      '别打扰我修炼！🧘',
+      '做题了吗？📖',
+      '心魔清了吗？🧊',
+      '今日可有所成？',
+      '大道至简，贵在坚持',
+      `我是${stage.name}境 🐾`,
+    ];
+    showBubble(reacts[Math.floor(Math.random() * reacts.length)]);
+  }
+});
+
+// ═══════ 拖拽 ═══════
+let dragging = false, dragLastX = 0, dragLastY = 0;
+document.addEventListener('mousedown', (e) => {
+  dragging = true;
+  dragLastX = e.screenX;
+  dragLastY = e.screenY;
+});
+document.addEventListener('mousemove', (e) => {
+  if (!dragging) return;
+  window.electronAPI.moveWindow(e.screenX - dragLastX, e.screenY - dragLastY);
+  dragLastX = e.screenX;
+  dragLastY = e.screenY;
+});
+document.addEventListener('mouseup', () => { dragging = false; });
+
+// ═══════ 窗口自适应 ═══════
+window.addEventListener('resize', () => {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+});
+
+// ═══════ 接收进度 ═══════
+window.electronAPI.onProgressUpdate((data) => {
+  // 计算经验值：每做对一题 = 5 XP
+  let totalDone = 0;
+  let retryCount = 0;
+  for (const val of Object.values(data)) {
+    if (val && typeof val === 'object') {
+      if ('done' in val && Array.isArray(val.done)) totalDone += val.done.length;
+      if ('retry' in val && Array.isArray(val.retry)) retryCount = val.retry.length;
+    }
+  }
+  const xp = totalDone * 5;
+  setXP(xp);
+
+  if (retryCount > 0) {
+    showBubble(`🧊 心魔 ${retryCount} 题待清`);
+  }
+});
+
+// ═══════ 定时同步 ═══════
+function doSync() {
+  if (window.electronAPI && window.electronAPI.syncNow) {
+    window.electronAPI.syncNow();
+  }
+}
+// 启动后同步，之后每30秒同步一次
+setTimeout(doSync, 2000);
+setInterval(doSync, 30000);
+
+// ═══════ 启动 ═══════
+pet.x = 50 + Math.random() * (canvas.width - 130);
+pet.y = canvas.height - 80;
+setXP(0);
+
+update();
+</script>
+</body>
+</html>

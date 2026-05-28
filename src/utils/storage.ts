@@ -177,3 +177,89 @@ export function importAllProgress(data: ExportedProgress, targetProfileId: strin
   }
   setActiveProfileId(targetProfileId);
 }
+
+// ═══════════ 共享档案 ═══════════
+
+export interface SharedProfileEntry {
+  id: string;
+  name: string;
+  updatedAt: string;
+  chapters: Record<number, { mastery: number; doneCount: number; totalCount: number }>;
+}
+
+/** 将当前活跃档案的进度压缩为分享码 */
+/** 获取当前活跃档案的完整进度（含所有章节） */
+export function getActiveProfileProgress(): SharedProfileEntry {
+  const profile = ensureProfile();
+  const chapters: SharedProfileEntry['chapters'] = {};
+  const keys = Object.keys(localStorage).filter(k => k.startsWith(`${PROFILE_PREFIX}${profile.id}_chapter_`));
+  for (const k of keys) {
+    const chapterId = parseInt(k.split('_').pop() || '0');
+    const progress = loadProgress(profile.id, chapterId);
+    let totalCount = 0;
+    try {
+      const chaptersRaw = localStorage.getItem('c9_imported_chapters');
+      if (chaptersRaw) {
+        const chs = JSON.parse(chaptersRaw);
+        const chInfo = chs.find((c: Record<string, unknown>) => c.chapterId === chapterId);
+        if (chInfo) totalCount = (chInfo as Record<string, number>).taskCount || 0;
+      }
+    } catch { /* ignore */ }
+    const doneCount = progress.done.length;
+    const mastery = totalCount > 0 ? Math.round((doneCount / totalCount) * 100) : 0;
+    chapters[chapterId] = { mastery, doneCount, totalCount: Math.max(totalCount, doneCount) };
+  }
+  return { id: profile.id, name: profile.name, updatedAt: new Date().toISOString(), chapters };
+}
+
+export function generateShareCode(): string {
+  const entry = getActiveProfileProgress();
+  try {
+    return btoa(JSON.stringify(entry));
+  } catch {
+    return JSON.stringify(entry);
+  }
+}
+
+/** 解析分享码 */
+export function parseShareCode(code: string): SharedProfileEntry | null {
+  try {
+    let json: string;
+    try { json = atob(code); } catch { json = code; }
+    const data = JSON.parse(json);
+    if (data && typeof data.id === 'string' && typeof data.name === 'string' && data.chapters) {
+      return data as SharedProfileEntry;
+    }
+    return null;
+  } catch { return null; }
+}
+
+const SHARED_PROFILES_KEY = 'c9_shared_profiles';
+
+/** 获取已导入的共享档案列表 */
+export function getSharedProfiles(): SharedProfileEntry[] {
+  try {
+    const raw = localStorage.getItem(SHARED_PROFILES_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch { return []; }
+}
+
+function saveSharedProfiles(profiles: SharedProfileEntry[]): void {
+  localStorage.setItem(SHARED_PROFILES_KEY, JSON.stringify(profiles));
+}
+
+/** 导入一个分享码，添加到共享档案列表 */
+export function importShareCode(code: string): { success: boolean; error?: string; entry?: SharedProfileEntry } {
+  const entry = parseShareCode(code);
+  if (!entry) return { success: false, error: '分享码格式不正确' };
+  if (!entry.name.trim()) return { success: false, error: '档案名称无效' };
+  const profiles = getSharedProfiles().filter(p => p.id !== entry.id);
+  profiles.push(entry);
+  saveSharedProfiles(profiles);
+  return { success: true, entry };
+}
+
+/** 删除共享档案 */
+export function removeSharedProfile(id: string): void {
+  saveSharedProfiles(getSharedProfiles().filter(p => p.id !== id));
+}

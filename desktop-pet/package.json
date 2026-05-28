@@ -1,0 +1,30 @@
+{
+  "name": "c9-cultivation-pet",
+  "version": "1.0.0",
+  "description": "C9 考研数学修炼系统 · 桌面修炼伴侣",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder build --win --dir",
+    "pack": "electron-builder build --win"
+  },
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.0.0",
+    "electron-packager": "^17.1.2"
+  },
+  "build": {
+    "appId": "com.c9.cultivation-pet",
+    "productName": "天道修炼",
+    "directories": {
+      "output": "release"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  }
+}

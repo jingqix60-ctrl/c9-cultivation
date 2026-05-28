@@ -29,8 +29,8 @@
   --shadow: 0 1px 4px rgba(94, 77, 56, 0.08);
   --shadow-lg: 0 2px 12px rgba(94, 77, 56, 0.12);
   --max-w: 760px;
-  --font-title: "Noto Serif SC", "Source Han Serif SC", "Songti SC", "STSong", "SimSun", serif;
-  --font-body: "Inter", "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+  --font-title: "Lora", "Noto Serif SC", "Source Han Serif SC", "Songti SC", "STSong", "SimSun", serif;
+  --font-body: "Inter", "Noto Sans SC", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --left-w: 220px;
   --right-w: 260px;
   --center-min: 720px;
@@ -42,12 +42,17 @@
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
+html {
+  zoom: 1.25;
+}
+
 html, body {
-  font: 15px/1.8 var(--font-body);
+  font: 15px/1.7 var(--font-body);
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 #root { min-height: 100vh; }
@@ -58,6 +63,35 @@ a:hover { text-decoration: underline; }
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
+
+/* ═══════════ TYPOGRAPHY ═══════════ */
+h1, h2, h3, h4,
+.hero-title,
+.page-title,
+.stage-title,
+.subject-title,
+.chapter-title,
+.section-title,
+.card-title {
+  font-family: var(--font-title);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+/* 小字号导航、按钮等保持无衬线 */
+button, nav, input, textarea, select,
+.sidebar-left, .sidebar-right,
+.bottom-nav, .nav-item,
+.btn, .tag, .badge, .diff, .realm,
+.kp-tag, .stage-node-btn, .review-item,
+.qnav-num, .qnav-toggle,
+.stat-value, .stat-label,
+.task-section-label,
+.stage-body .st-meta,
+.stage-card .sc-desc, .stage-card .sc-meta,
+.st-meta {
+  font-family: var(--font-body);
+}
 
 /* ═══════════ LAYOUT ═══════════ */
 
@@ -431,12 +465,14 @@ body {
 .hero-title { font-size: 22px; font-weight: 700; font-family: var(--font-title); color: var(--accent); }
 .hero-sub { font-size: 13px; color: var(--text2); margin-top: 4px; }
 
-/* ═══════════ KATEX ═══════════ */
-.katex { font-size: 1.06em; }
-.katex-display { margin: 0.4em 0; overflow-x: auto; overflow-y: hidden; }
-
-/* Code/formula faint grid */
-.katex-display {
+/* ═══════════ MATHJAX ═══════════ */
+mjx-container {
+  font-size: 1.06em;
+}
+mjx-container[display="true"] {
+  margin: 0.4em 0;
+  overflow-x: auto;
+  overflow-y: hidden;
   background-image:
     linear-gradient(rgba(94,77,56,0.03) 1px, transparent 1px);
   background-size: 100% 24px;
@@ -603,6 +639,96 @@ body {
     transition: transform 0.25s ease; box-shadow: 0 -2px 12px rgba(0,0,0,0.08);
   }
   .bottom-drawer.open { transform: translateY(0); }
+}
+
+/* ═══════════ HOME PAGE DECORATIONS ═══════════ */
+.home-page {
+  position: relative;
+  min-height: calc(100vh - 90px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px 0;
+  overflow: hidden;
+}
+
+.home-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 440px;
+}
+
+/* 中心光晕 — 标题后方的淡金色圆形 */
+.home-glow {
+  position: absolute;
+  top: 15%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 420px;
+  height: 420px;
+  background: radial-gradient(circle, rgba(139, 94, 52, 0.06) 0%, rgba(139, 94, 52, 0.03) 40%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* 装饰性圆形 — 极淡的阵法/月晕元素 */
+.home-circle {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid rgba(139, 94, 52, 0.06);
+  pointer-events: none;
+  z-index: 0;
+}
+.home-circle-1 {
+  top: 8%;
+  right: 5%;
+  width: 140px;
+  height: 140px;
+  background: radial-gradient(circle, rgba(139, 94, 52, 0.03) 0%, transparent 70%);
+}
+.home-circle-2 {
+  bottom: 15%;
+  left: 3%;
+  width: 100px;
+  height: 100px;
+  background: radial-gradient(circle, rgba(94, 124, 118, 0.03) 0%, transparent 70%);
+}
+
+/* 云雾装饰 — 极淡的左右侧弧线 */
+.home-cloud {
+  position: absolute;
+  width: 200px;
+  height: 120px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.3;
+}
+.home-cloud-left {
+  bottom: 20%;
+  left: -60px;
+  background: radial-gradient(ellipse at center, rgba(255, 253, 247, 0.5) 0%, transparent 70%);
+}
+.home-cloud-right {
+  top: 40%;
+  right: -80px;
+  background: radial-gradient(ellipse at center, rgba(255, 253, 247, 0.4) 0%, transparent 70%);
+}
+
+/* ═══════════ HOME PAGE STAGE BUTTONS ═══════════ */
+.home-stage-btn:hover {
+  border-color: var(--accent) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(94, 77, 56, 0.12) !important;
+}
+.home-stage-btn:active {
+  transform: translateY(-1px);
 }
 
 /* Desktop-only sidebar toggle visibility */

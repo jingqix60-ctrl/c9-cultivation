@@ -1,143 +1,187 @@
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useProgressStore } from '../store/useProgressStore';
-import { STAGES, SUBJECTS } from '../data/stages';
-import { getAllChapters } from '../data/math/zhangyu30';
-import { chapter10Data } from '../data/math/zhangyu30/chapter10';
-import ProfileSwitcher from '../components/Common/ProfileSwitcher';
+import { STAGES } from '../data/stages';
+
+const BASE = '/c9-cultivation';
+const STAGE_IMAGES: Record<string, string> = {
+  foundation: `${BASE}/images/xiajie.jpg`,
+  spirit: `${BASE}/images/lingyu.jpg`,
+  heaven: `${BASE}/images/tiantang-wen.jpg`,
+};
+
+// ── 考研倒计时 ──
+// 2026年考研（2027届）预计时间：
+const EXAMS = [
+  { label: '思想政治理论', date: new Date('2026-12-21T08:30:00') },
+  { label: '外国语',       date: new Date('2026-12-21T14:00:00') },
+  { label: '数学',         date: new Date('2026-12-22T08:30:00') },
+  { label: '专业课',       date: new Date('2026-12-22T14:00:00') },
+];
+
+function getNextExam() {
+  const now = Date.now();
+  for (const exam of EXAMS) {
+    const diff = exam.date.getTime() - now;
+    if (diff > 0) return { ...exam, diff };
+  }
+  return null;
+}
+
+function formatCountdown(diff: number) {
+  const d = Math.floor(diff / 86400000);
+  const h = Math.floor((diff % 86400000) / 3600000);
+  const m = Math.floor((diff % 3600000) / 60000);
+  const s = Math.floor((diff % 60000) / 1000);
+  return { d, h, m, s };
+}
+
+function ExamCountdown() {
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const allFinished = EXAMS.every(exam => exam.date.getTime() - now <= 0);
+  if (allFinished) {
+    return (
+      <div style={{ textAlign: 'center', marginBottom: 24, fontSize: 14, color: '#B85C5C', fontFamily: 'var(--font-title)', fontWeight: 600, letterSpacing: '0.04em' }}>
+        🎉 所有考试已结束
+      </div>
+    );
+  }
+
+  return (
+    <div style={{
+      display: 'flex', justifyContent: 'center', gap: 12, flexWrap: 'wrap',
+      marginBottom: 24,
+    }}>
+      {EXAMS.map(exam => {
+        const diff = exam.date.getTime() - now;
+        const ended = diff <= 0;
+        const cd = formatCountdown(Math.max(0, diff));
+        return (
+          <div key={exam.label} style={{
+            textAlign: 'center', minWidth: 120,
+            background: 'var(--surface)', border: '1px solid rgba(184,92,92,0.15)',
+            borderRadius: 'var(--radius)', padding: '10px 14px',
+            opacity: ended ? 0.35 : 1,
+            boxShadow: 'var(--shadow)',
+          }}>
+            <div style={{ fontSize: 10, color: ended ? 'var(--text3)' : '#B85C5C', marginBottom: 3, fontFamily: 'var(--font-title)', letterSpacing: '0.04em', fontWeight: 600 }}>
+              {exam.label}
+              {ended && ' ✓'}
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: 4, fontFamily: 'var(--font-title)' }}>
+              {[
+                { v: cd.d, l: '天' },
+                { v: cd.h, l: '时' },
+                { v: cd.m, l: '分' },
+                { v: cd.s, l: '秒' },
+              ].map(item => (
+                <div key={item.l} style={{
+                  display: 'flex', flexDirection: 'column', alignItems: 'center',
+                  background: ended ? 'var(--surface3)' : 'rgba(184,92,92,0.06)',
+                  borderRadius: 4, padding: '4px 6px', minWidth: 32,
+                }}>
+                  <span style={{ fontSize: 15, fontWeight: 700, color: ended ? 'var(--text3)' : (item.l === '秒' ? '#C0392B' : '#B85C5C'), fontVariantNumeric: 'tabular-nums', lineHeight: 1.2 }}>
+                    {String(item.v).padStart(2, '0')}
+                  </span>
+                  <span style={{ fontSize: 8, color: ended ? 'var(--text3)' : '#B85C5C', marginTop: 1 }}>{item.l}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 export default function HomePage() {
   const navigate = useNavigate();
-  const init = useProgressStore(s => s.init);
-  const storeChapterId = useProgressStore(s => s.chapterId);
-  const storeTitle = useProgressStore(s => s.chapterTitle);
-  const stats = useProgressStore(s => s.stats);
-  const retry = useProgressStore(s => s.retry);
-
-  const chapters = getAllChapters();
-  const available = chapters.filter(c => c.status === 'available');
-  const totalTasks = available.reduce((s, c) => s + c.taskCount, 0);
-  const dueRetryCount = retry.length;
-
-  const handleProfileChange = () => {
-    init(10, chapter10Data);
-  };
 
   return (
-    <div className="anim-in">
-      {/* Profile */}
-      <ProfileSwitcher onProfileChange={handleProfileChange} />
+    <div className="home-page anim-in">
+      {/* 装饰层 */}
+      <div className="home-glow" />
+      <div className="home-circle home-circle-1" />
+      <div className="home-circle home-circle-2" />
+      <div className="home-cloud home-cloud-left" />
+      <div className="home-cloud home-cloud-right" />
 
-      {/* Hero */}
-      <div className="hero">
-        <div className="hero-icon">📖</div>
-        <div className="hero-title">C9 考研数学修炼系统</div>
-        <div className="hero-sub">当前阶段：下界筑基 · 高等数学 · 张宇30讲</div>
-      </div>
-
-      {/* Quick stats */}
-      <div className="stats-grid">
-        <div className="stat-card">
-          <div className="stat-value" style={{ color: 'var(--accent)' }}>{available.length}</div>
-          <div className="stat-label">已录入章节</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-value" style={{ color: 'var(--green)' }}>{totalTasks}</div>
-          <div className="stat-label">总任务数</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-value" style={{ color: stats.mastery ? 'var(--accent)' : 'var(--text3)' }}>
-            {stats.mastery || 0}%
+      <div className="home-content">
+        {/* 标题 */}
+        <div className="home-header" style={{ textAlign: 'center', marginBottom: 40 }}>
+          <div className="home-logo" style={{
+            width: 120, height: 120, margin: '0 auto 16px',
+            borderRadius: 12,
+            overflow: 'hidden',
+            background: '#F7F1E6',
+            boxShadow: '0 2px 16px rgba(94,77,56,0.15)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <img src={`${BASE}/images/shouye.jpg`} alt="天道修炼"
+              style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
           </div>
-          <div className="stat-label">最近掌握度</div>
+          <h1 style={{ fontFamily: 'var(--font-title)', fontSize: 26, color: 'var(--accent)', fontWeight: 600, marginBottom: 8, letterSpacing: '0.06em' }}>
+            天道修炼
+          </h1>
+          <p style={{ fontSize: 12, color: 'var(--text2)', maxWidth: 360, margin: '0 auto', lineHeight: 1.7 }}>
+            选择你的修炼阶段，开启考研数学渡劫之路
+          </p>
         </div>
-        <div className="stat-card">
-          <div className="stat-value" style={{ color: dueRetryCount > 0 ? 'var(--red)' : 'var(--green)' }}>
-            {dueRetryCount}
-          </div>
-          <div className="stat-label">待清心魔</div>
-        </div>
-      </div>
 
-      {/* Continue CTA */}
-      {storeTitle && (
-        <div className="dash-cta">
-          <div className="cta-text">
-            <div className="cta-title">继续修炼 · 第{storeChapterId}讲 {storeTitle}</div>
-            <div className="cta-sub">掌握度 {stats.mastery || 0}% · {stats.doneCount || 0}/{stats.totalCount || 0} 题</div>
-          </div>
-          <button className="btn btn-primary" onClick={() => navigate(`/chapter/${storeChapterId}`)}>
-            继续修炼 →
-          </button>
-        </div>
-      )}
+        {/* 考研倒计时 */}
+        <ExamCountdown />
 
-      {/* Three stages */}
-      <div className="task-section-label" style={{ marginBottom: 8 }}>修炼阶段</div>
-      <div className="stage-grid">
-        {STAGES.map(stage => {
-          const stageSubjects = SUBJECTS.filter(s => s.stageId === stage.id);
-          const stageChapters = stageSubjects.reduce((s, sub) => s + sub.chapters, 0);
-          const isActive = stage.id === 'foundation';
-          return (
-            <div
-              key={stage.id}
-              className="stage-card"
-              style={{ opacity: isActive ? 1 : 0.5, cursor: isActive ? 'pointer' : 'default' }}
-              onClick={() => isActive && navigate(`/stage/${stage.id}`)}
-            >
-              <div className="sc-icon">{stage.icon}</div>
-              <div className="sc-name">{stage.name}</div>
-              <div className="sc-desc">{stage.desc}</div>
-              <div className="sc-meta">
-                {stageChapters > 0 ? `${stageChapters} 讲已录入` : '即将开启'}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Subject entries under 下界筑基 */}
-      <div className="task-section-label" style={{ marginBottom: 8 }}>
-        下界筑基 · 学科入口
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 14 }}>
-        {SUBJECTS.filter(s => s.stageId === 'foundation').map(sub => (
+        {/* 三张阶段大卡片 */}
+        <div className="home-cards" style={{
+          display: 'flex', flexDirection: 'column', gap: 18,
+          width: '100%', maxWidth: 440,
+        }}>
+        {STAGES.map(stage => (
           <button
-            key={sub.id}
-            className={`stage-node-btn ${sub.locked ? 'locked' : ''}`}
-            disabled={sub.locked}
-            onClick={() => navigate(`/stage/foundation/${sub.id}`)}
+            key={stage.id}
+            onClick={() => navigate(`/stage/${stage.id}`)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 18,
+              width: '100%', padding: '16px 20px',
+              background: 'var(--surface)',
+              border: '1px solid var(--border)',
+              borderRadius: 'var(--radius-lg)',
+              cursor: 'pointer',
+              textAlign: 'left',
+              fontFamily: 'var(--font-body)',
+              color: 'var(--text)',
+              boxShadow: 'var(--shadow)',
+              transition: 'all 0.2s',
+            }}
+            className="home-stage-btn"
           >
-            <div className="stage-icon" style={{ background: sub.locked ? 'var(--surface3)' : 'var(--accent-soft)' }}>
-              {sub.icon}
+            <div style={{
+              flexShrink: 0,
+              width: 96, height: 72,
+              borderRadius: 6,
+              overflow: 'hidden',
+              background: '#F7F1E6',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <img src={STAGE_IMAGES[stage.id]} alt={stage.name}
+                style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
             </div>
-            <div className="stage-body">
-              <div className="st-name">{sub.name}</div>
-              <div className="st-meta">
-                {sub.locked ? '敬请期待' : `张宇30讲 · ${sub.chapters} 讲已录入 · ${totalTasks} 题`}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 17, fontWeight: 600, fontFamily: 'var(--font-title)', color: 'var(--accent)', marginBottom: 2, letterSpacing: '0.04em' }}>
+                {stage.name}
+              </div>
+              <div style={{ fontSize: 12, color: 'var(--text2)', lineHeight: 1.6 }}>
+                {stage.desc}
               </div>
             </div>
-            <span style={{ color: 'var(--text3)', fontSize: 13 }}>{sub.locked ? '🔒' : '→'}</span>
+            <span style={{ fontSize: 16, color: 'var(--text3)', flexShrink: 0 }}>→</span>
           </button>
         ))}
       </div>
-
-      {/* Due retry reminder */}
-      {dueRetryCount > 0 && (
-        <div className="dash-cta" style={{ borderColor: 'var(--red)' }}>
-          <div className="cta-text">
-            <div className="cta-title" style={{ color: 'var(--red)' }}>心魔提醒 · {dueRetryCount} 题待复习</div>
-            <div className="cta-sub">建议今日完成心魔题复习，巩固薄弱环节。</div>
-          </div>
-          <button className="btn btn-danger btn-sm" onClick={() => navigate(`/chapter/${storeChapterId || 10}/review`)}>
-            进入心魔本 →
-          </button>
-        </div>
-      )}
-
-      {/* Quick links */}
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-        <button className="btn btn-ghost btn-sm" onClick={() => navigate('/import')}>📥 导入章节</button>
       </div>
     </div>
   );

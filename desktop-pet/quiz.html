@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background: #FFFDF7;
+  color: #2F2A24;
+  padding: 20px;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+.header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(94,77,56,0.12);
+}
+.header-icon { font-size: 24px; }
+.header-info { flex: 1; }
+.header-title { font-size: 13px; font-weight: 600; color: #B85C5C; }
+.header-sub { font-size: 10px; color: #7A6F63; margin-top: 2px; }
+.question {
+  font-size: 13px;
+  line-height: 1.8;
+  flex: 1;
+  overflow-y: auto;
+  margin-bottom: 12px;
+  padding: 8px 0;
+}
+.actions {
+  display: flex;
+  gap: 8px;
+  border-top: 1px solid rgba(94,77,56,0.1);
+  padding-top: 12px;
+}
+.btn {
+  flex: 1;
+  padding: 8px 0;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  transition: all 0.12s;
+}
+.btn:active { transform: scale(0.97); }
+.btn-hint { background: rgba(182,138,53,0.1); color: #B68A35; border: 1px solid rgba(182,138,53,0.2); }
+.btn-answer { background: rgba(139,94,52,0.08); color: #8B5E34; border: 1px solid rgba(139,94,52,0.15); }
+.btn-close { background: transparent; color: #7A6F63; border: 1px solid rgba(94,77,56,0.12); }
+.hint-panel, .answer-panel {
+  display: none;
+  margin-top: 8px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 1.7;
+  max-height: 120px;
+  overflow-y: auto;
+}
+.hint-panel { background: rgba(182,138,53,0.04); border-left: 3px solid #B68A35; }
+.answer-panel { background: rgba(79,125,90,0.04); border-left: 3px solid #4F7D5A; }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="header-icon">🧊</div>
+  <div class="header-info">
+    <div class="header-title">心魔突袭 · 错题复习</div>
+    <div class="header-sub" id="taskSource"></div>
+  </div>
+</div>
+<div class="question" id="questionText">加载中…</div>
+<div class="hint-panel" id="hintPanel"></div>
+<div class="answer-panel" id="answerPanel"></div>
+<div class="actions">
+  <button class="btn btn-hint" onclick="toggleHint()">💡 提示</button>
+  <button class="btn btn-answer" onclick="toggleAnswer()">📖 答案</button>
+  <button class="btn btn-close" onclick="window.close()">关闭</button>
+</div>
+<script>
+let showHint = false, showAnswer = false;
+
+function toggleHint() {
+  showHint = !showHint;
+  document.getElementById('hintPanel').style.display = showHint ? 'block' : 'none';
+}
+function toggleAnswer() {
+  showAnswer = !showAnswer;
+  document.getElementById('answerPanel').style.display = showAnswer ? 'block' : 'none';
+}
+
+window.electronAPI.onShowQuiz((task) => {
+  document.getElementById('questionText').innerHTML = task.question || '（题目加载失败）';
+  document.getElementById('taskSource').textContent = task.source || '';
+  document.getElementById('hintPanel').innerHTML = task.hint || '暂无提示';
+  document.getElementById('answerPanel').innerHTML = (task.answer || '暂无答案') + '<br><br><strong>解法：</strong>' + (task.method || '');
+});
+</script>
+</body>
+</html>

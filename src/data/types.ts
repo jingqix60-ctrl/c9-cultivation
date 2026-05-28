@@ -55,6 +55,10 @@ export interface Task {
   knowledgePoints: string[];
   mistakeTypes: MistakeType[];
   moduleId?: string;
+  /** 所属阶段：foundation(下界筑基) / spirit(灵域试炼) / heaven(天庭问道) */
+  stageId?: string;
+  /** 所属学科：math(高等数学) / linear(线性代数) / probability(概率论与数理统计) */
+  subjectId?: string;
 }
 
 // ── Chapter Data (importable JSON format) ──
@@ -68,6 +72,8 @@ export interface ChapterData {
   tasks: Task[];
   knowledgePoints: string[];
   modules?: ChapterModule[];
+  stageId?: string;
+  subjectId?: string;
 }
 
 export interface ChapterModule {
@@ -86,6 +92,21 @@ export interface ChapterEntry {
   taskCount: number;
   difficulty: number;
   status: 'available' | 'not_imported';
+  subjectId?: string;
+  stageId?: string;
+}
+
+// ── Book Info ──
+export interface BookInfo {
+  id: string;
+  name: string;
+  author: string;
+  stageId: string;
+  subjectId: string;
+  chapters: number;
+  description: string;
+  icon?: string;
+  priority?: number;
 }
 
 // ── Realm ──
